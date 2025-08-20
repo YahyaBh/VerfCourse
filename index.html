@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEBINA Digital - Certificate Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#FFE662',
+                        darkbg: '#1e1e1e',
+                        darkcard: '#2d2d2d',
+                        lightbg: '#f5f5f5',
+                        lightcard: '#ffffff'
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #FFE662, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .certificate-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .certificate-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dark .glass-effect {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom animations */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #2d2d2d 4%, #3d3d3d 25%, #2d2d2d 36%);
+            background-size: 1000px 100%;
+        }
+    </style>
+</head>
+
+<body class="bg-darkbg text-gray-200 min-h-screen">
+    <div class="container mx-auto px-4 max-w-[1820px]">
+        <!-- Header -->
+        <header class="flex justify-between items-center py-6">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+                    <i class="fas fa-certificate text-gray-900 text-xl"></i>
+                </div>
+                <span class="text-2xl font-bold">WEBINA <span class="gradient-text">Digital</span></span>
+            </div>
+
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="nav-link font-medium hover:text-accent transition" data-page="home">Home</a>
+                <a href="#" class="nav-link font-medium hover:text-accent transition" data-page="verify">Verify</a>
+                <a href="#" class="nav-link font-medium hover:text-accent transition" data-page="admin">Admin</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="w-10 h-10 rounded-full glass-effect flex items-center justify-center">
+                    <i class="fas fa-moon"></i>
+                </button>
+
+                <button class="md:hidden glass-effect w-10 h-10 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="my-12">
+            <!-- Home Page -->
+            <section id="home" class="page active">
+                <div class="max-w-4xl mx-auto text-center">
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">Verify Your <span class="gradient-text">Digital
+                            Certificate</span></h1>
+                    <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">WEBINA Digital provides verifiable digital
+                        certificates for all completed courses. Validate your achievements with our secure verification
+                        system.</p>
+
+                    <div class="animate-float mb-12">
+                        <div class="glass-effect p-6 rounded-2xl inline-block">
+                            <div
+                                class="w-64 h-40 bg-accent/20 rounded-lg border-2 border-accent/30 flex items-center justify-center">
+                                <i class="fas fa-certificate text-5xl text-accent"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        class="verify-btn bg-accent text-gray-900 font-bold py-4 px-8 rounded-full text-lg hover:bg-accent/90 transition-all transform hover:scale-105 shadow-lg shadow-accent/20">
+                        Verify Your Certificate
+                    </button>
+
+                    <!-- Test Certificate Hint -->
+                    <div class="mt-16 p-6 bg-darkcard rounded-2xl max-w-xl mx-auto">
+                        <h3 class="text-xl font-bold mb-4 text-accent"><i class="fas fa-lightbulb mr-2"></i>Test
+                            Certificate</h3>
+                        <p class="text-gray-400 mb-2">You can test the verification system with:</p>
+                        <div class="text-left bg-darkbg rounded-lg p-4">
+                            <p class="mb-1"><span class="font-semibold">Certificate ID:</span> WEB-2023-ABCD1234</p>
+                            <p><span class="font-semibold">Student Name:</span> Johnathan Doe</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Verification Page -->
+            <section id="verify" class="page hidden">
+                <div class="max-w-[750px] mx-auto">
+                    <div class="certificate-card bg-darkcard rounded-2xl p-8 shadow-xl">
+                        <h2 class="text-3xl font-bold mb-2">Certificate Verification</h2>
+                        <p class="text-gray-400 mb-8">Enter your certificate ID or student name to verify your
+                            certificate</p>
+
+                        <form action="search_certificate.php" method="POST" class="space-y-6">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Certificate ID</label>
+                                <input type="text" name="certificate_id"
+                                    class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                    placeholder="e.g. WEB-2023-ABCD1234">
+                            </div>
+
+                            <div class="relative">
+                                <label class="block text-gray-400 mb-2">Student Name</label>
+                                <input type="text" name="student_name"
+                                    class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                    placeholder="Enter your full name">
+                            </div>
+
+                            <button type="submit"
+                                class="search-btn w-full bg-accent text-gray-900 font-bold py-4 rounded-xl text-lg hover:bg-accent/90 transition-all transform hover:scale-[1.02]">
+                                Search Certificate
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Result Page -->
+            <section id="result" class="page hidden">
+                <div class="max-w-[750px] mx-auto">
+                    <div class="certificate-card bg-darkcard rounded-2xl p-8 shadow-xl">
+                        <div id="certificate-found">
+                            <div class="text-center mb-8">
+                                <div
+                                    class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-check-circle text-4xl text-green-500"></i>
+                                </div>
+                                <h2 class="text-3xl font-bold mb-2">Certificate Verified Successfully</h2>
+                                <p class="text-gray-400">This certificate has been issued by WEBINA Digital and is
+                                    valid.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                                <div class="bg-darkbg rounded-xl p-5">
+                                    <p class="text-gray-400 mb-1">Student Name</p>
+                                    <p class="text-xl font-semibold" id="result-name">Johnathan Doe</p>
+                                </div>
+
+                                <div class="bg-darkbg rounded-xl p-5">
+                                    <p class="text-gray-400 mb-1">Course Title</p>
+                                    <p class="text-xl font-semibold" id="result-course">Advanced Web Development</p>
+                                </div>
+
+                                <div class="bg-darkbg rounded-xl p-5">
+                                    <p class="text-gray-400 mb-1">Certificate ID</p>
+                                    <p class="text-xl font-semibold" id="result-id">WEB-2023-ABCD1234</p>
+                                </div>
+
+                                <div class="bg-darkbg rounded-xl p-5">
+                                    <p class="text-gray-400 mb-1">Date Issued</p>
+                                    <p class="text-xl font-semibold" id="result-date">August 15, 2023</p>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col items-center">
+                                <div id="qrcode" class="bg-white p-3 rounded-xl mb-4"></div>
+                                <p class="text-gray-400">Scan QR code to verify digitally</p>
+                            </div>
+                        </div>
+
+                        <div id="certificate-not-found" class="hidden text-center py-10">
+                            <div
+                                class="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-times-circle text-4xl text-red-500"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-2">Certificate Not Found</h2>
+                            <p class="text-gray-400 mb-6">The certificate you're looking for doesn't exist in our
+                                database. Please check your information and try again.</p>
+                            <button
+                                class="try-again-btn bg-accent text-gray-900 font-bold py-3 px-6 rounded-lg hover:bg-accent/90 transition">
+                                Try Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Login Page -->
+            <section id="admin-login" class="page hidden">
+                <div class="max-w-[500px] mx-auto">
+                    <div class="certificate-card bg-darkcard rounded-2xl p-8 shadow-xl">
+                        <h2 class="text-3xl font-bold mb-2">Admin Login</h2>
+                        <p class="text-gray-400 mb-8">Access the certificate management dashboard</p>
+
+                        <form action="admin_login.php" method="POST" class="space-y-6">
+                            <div>
+                                <label class="block text-gray-400 mb-2">Email Address</label>
+                                <input type="email" name="email"
+                                    class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                    placeholder="admin@webina.com">
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-400 mb-2">Password</label>
+                                <input type="password" name="password"
+                                    class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                    placeholder="Enter your password">
+                            </div>
+
+                            <button type="submit"
+                                class="login-btn w-full bg-accent text-gray-900 font-bold py-4 rounded-xl text-lg hover:bg-accent/90 transition-all transform hover:scale-[1.02]">
+                                Login to Dashboard
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Dashboard Page -->
+            <section id="admin-dashboard" class="page hidden">
+                <div class="max-w-full mx-auto">
+                    <div class="certificate-card bg-darkcard rounded-2xl p-8 shadow-xl">
+                        <h2 class="text-3xl font-bold mb-2">Certificate Management</h2>
+                        <p class="text-gray-400 mb-8">Manage all issued certificates</p>
+
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <button
+                                class="add-certificate-btn bg-accent text-gray-900 font-bold py-3 px-5 rounded-lg flex items-center space-x-2 hover:bg-accent/90 transition">
+                                <i class="fas fa-plus"></i>
+                                <span>Add New Certificate</span>
+                            </button>
+
+                            <form action="search_certificate_admin.php" method="GET"
+                                class="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                                <input type="text" name="search_query"
+                                    class="bg-darkcard border-2 border-gray-700 rounded-lg py-3 px-4 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                    placeholder="Search certificates...">
+                                <button type="submit"
+                                    class="bg-accent text-gray-900 font-bold py-3 px-5 rounded-lg hover:bg-accent/90 transition">
+                                    Search
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-gray-800">
+                                        <th class="py-4 px-5 text-left">Certificate ID</th>
+                                        <th class="py-4 px-5 text-left">Student Name</th>
+                                        <th class="py-4 px-5 text-left">Course Name</th>
+                                        <th class="py-4 px-5 text-left">Issue Date</th>
+                                        <th class="py-4 px-5 text-left">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-4 px-5">WEB-2023-ABCD1234</td>
+                                        <td class="py-4 px-5">Johnathan Doe</td>
+                                        <td class="py-4 px-5">Advanced Web Development</td>
+                                        <td class="py-4 px-5">Aug 15, 2023</td>
+                                        <td class="py-4 px-5">
+                                            <div class="flex space-x-3">
+                                                <button
+                                                    class="edit-btn w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                    <i class="fas fa-edit text-white"></i>
+                                                </button>
+                                                <button
+                                                    class="delete-btn w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
+                                                    <i class="fas fa-trash text-white"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-gray-700">
+                                        <td class="py-4 px-5">WEB-2023-EFGH5678</td>
+                                        <td class="py-4 px-5">Sarah Johnson</td>
+                                        <td class="py-4 px-5">Data Science Fundamentals</td>
+                                        <td class="py-4 px-5">Jul 28, 2023</td>
+                                        <td class="py-4 px-5">
+                                            <div class="flex space-x-3">
+                                                <button
+                                                    class="edit-btn w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                    <i class="fas fa-edit text-white"></i>
+                                                </button>
+                                                <button
+                                                    class="delete-btn w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
+                                                    <i class="fas fa-trash text-white"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-4 px-5">WEB-2023-IJKL9012</td>
+                                        <td class="py-4 px-5">Michael Chen</td>
+                                        <td class="py-4 px-5">UX/UI Design Masterclass</td>
+                                        <td class="py-4 px-5">Sep 3, 2023</td>
+                                        <td class="py-4 px-5">
+                                            <div class="flex space-x-3">
+                                                <button
+                                                    class="edit-btn w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                    <i class="fas fa-edit text-white"></i>
+                                                </button>
+                                                <button
+                                                    class="delete-btn w-8 h-8 rounded-lg bg-red-500 flex items-center justify-center">
+                                                    <i class="fas fa-trash text-white"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-20 py-10 border-t border-gray-800 text-center text-gray-400">
+            <p>© 2023 WEBINA Digital. All rights reserved.</p>
+            <p class="mt-2">Contact: support@webina.com | Phone: +1 (234) 567-8900</p>
+        </footer>
+    </div>
+
+    <script>
+        // DOM Elements
+        const themeToggle = document.getElementById('theme-toggle');
+        const pages = document.querySelectorAll('.page');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const verifyBtn = document.querySelector('.verify-btn');
+        const searchBtn = document.querySelector('.search-btn');
+        const tryAgainBtn = document.querySelector('.try-again-btn');
+        const loginBtn = document.querySelector('.login-btn');
+        const certificateFound = document.getElementById('certificate-found');
+        const certificateNotFound = document.getElementById('certificate-not-found');
+
+        // Theme Toggle
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            document.body.classList.toggle('bg-darkbg');
+            document.body.classList.toggle('bg-lightbg');
+            document.body.classList.toggle('text-gray-200');
+            document.body.classList.toggle('text-gray-800');
+
+            if (document.body.classList.contains('dark')) {
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                document.body.classList.add('bg-darkbg');
+                document.body.classList.remove('bg-lightbg');
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                document.body.classList.add('bg-lightbg');
+                document.body.classList.remove('bg-darkbg');
+            }
+
+            // Update all cards
+            document.querySelectorAll('.certificate-card').forEach(card => {
+                card.classList.toggle('bg-darkcard');
+                card.classList.toggle('bg-lightcard');
+            });
+        });
+
+        // Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('data-page');
+
+                if (pageId === 'admin') {
+                    showPage('admin-login');
+                } else {
+                    showPage(pageId);
+                }
+            });
+        });
+
+        // Verify Button
+        verifyBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage('verify');
+        });
+
+        // Search Button
+        searchBtn.addEventListener('click', () => {
+            const certificateId = document.getElementById('certificate-id').value;
+            const studentName = document.getElementById('student-name').value.toLowerCase();
+
+            // For demo purposes, we'll show success for specific values
+            const validCertificates = [
+                { id: 'WEB-2023-ABCD1234', name: 'johnathan doe' },
+                { id: 'WEB-2023-EFGH5678', name: 'sarah johnson' },
+                { id: 'WEB-2023-IJKL9012', name: 'michael chen' }
+            ];
+
+            const foundCertificate = validCertificates.find(cert => {
+                return cert.id === certificateId ||
+                    cert.name.includes(studentName);
+            });
+
+            if (foundCertificate) {
+                // Show certificate details
+                document.getElementById('result-name').textContent = foundCertificate.name.charAt(0).toUpperCase() + foundCertificate.name.slice(1);
+                document.getElementById('result-id').textContent = foundCertificate.id;
+
+                // Generate QR Code
+                document.getElementById('qrcode').innerHTML = '';
+                const qrCode = new QRCode("qrcode", {
+                    text: `https://webina.com/verify/${foundCertificate.id}`,
+                    width: 160,
+                    height: 160,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+
+                certificateFound.style.display = 'block';
+                certificateNotFound.style.display = 'none';
+            } else {
+                certificateFound.style.display = 'none';
+                certificateNotFound.style.display = 'block';
+            }
+
+            showPage('result');
+        });
+
+        // Try Again Button
+        tryAgainBtn.addEventListener('click', () => {
+            showPage('verify');
+        });
+
+        // Login Button
+        loginBtn.addEventListener('click', () => {
+            showPage('admin-dashboard');
+        });
+
+        // Show Page Function
+        function showPage(pageId) {
+            pages.forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.remove('hidden');
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // Initialize with a QR code on load for demo
+        window.addEventListener('load', function () {
+            const qrCode = new QRCode("qrcode", {
+                text: "https://webina.com/verify/WEB-2023-ABCD1234",
+                width: 160,
+                height: 160,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        });
+    </script>
+</body>
+
+</html>
