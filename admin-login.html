@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - WEBINA Digital</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        accent: '#FFE662',
+                        darkbg: '#1e1e1e',
+                        darkcard: '#2d2d2d',
+                        lightbg: '#f5f5f5',
+                        lightcard: '#ffffff'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #FFE662, #ffaa00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+
+<body class="bg-darkbg text-gray-200 min-h-screen">
+    <div class="container mx-auto px-4 max-w-[1820px]">
+        <!-- Header -->
+        <header class="flex justify-between items-center py-6">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center">
+                    <i class="fas fa-certificate text-gray-900 text-xl"></i>
+                </div>
+                <a href="index.html" class="text-2xl font-bold">WEBINA <span class="gradient-text">Digital</span></a>
+            </div>
+
+            <nav class="hidden md:flex space-x-8">
+                <a href="index.html" class="nav-link font-medium hover:text-accent transition">Home</a>
+                <a href="verify.html" class="nav-link font-medium hover:text-accent transition">Verify</a>
+                <a href="admin-login.html" class="nav-link font-medium text-accent transition">Admin</a>
+            </nav>
+        </header>
+
+        <main class="my-12">
+            <div class="max-w-[500px] mx-auto">
+                <div class="bg-darkcard rounded-2xl p-8 shadow-xl">
+                    <h2 class="text-3xl font-bold mb-2">Admin Login</h2>
+                    <p class="text-gray-400 mb-8">Access the certificate management dashboard</p>
+
+                    <!-- Display errors if any -->
+                    <?php
+                    if (session_status() === PHP_SESSION_NONE) {
+                        session_start();
+                    }
+                    if (isset($_SESSION['error'])): 
+                    ?>
+                    <div class="bg-red-500/20 text-red-500 p-4 rounded-lg mb-6">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <?php if (isset($_SESSION['errors'])): ?>
+                    <div class="bg-red-500/20 text-red-500 p-4 rounded-lg mb-6">
+                        <?php foreach ($_SESSION['errors'] as $error): ?>
+                        <p><i class="fas fa-exclamation-circle mr-2"></i>
+                            <?php echo $error; ?>
+                        </p>
+                        <?php endforeach; unset($_SESSION['errors']); ?>
+                    </div>
+                    <?php endif; ?>
+
+                    <form action="admin-login.php" method="POST" class="space-y-6">
+                        <div>
+                            <label class="block text-gray-400 mb-2">Email Address</label>
+                            <input type="email" name="email"
+                                class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                placeholder="admin@webina.com" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-gray-400 mb-2">Password</label>
+                            <input type="password" name="password"
+                                class="w-full bg-darkcard border-2 border-gray-700 rounded-xl py-4 px-5 focus:border-accent focus:ring-2 focus:ring-accent/30 outline-none transition"
+                                placeholder="Enter your password" required>
+                        </div>
+
+                        <button type="submit"
+                            class="w-full bg-accent text-gray-900 font-bold py-4 rounded-xl text-lg hover:bg-accent/90 transition-all transform hover:scale-[1.02]">
+                            Login to Dashboard
+                        </button>
+                    </form>
+
+                    <div class="mt-6 p-4 bg-darkbg rounded-lg">
+                        <p class="text-sm text-gray-400 mb-2">Demo Credentials:</p>
+                        <p class="text-sm">Email: <span class="font-mono">admin@webina.com</span></p>
+                        <p class="text-sm">Password: <span class="font-mono">admin123</span></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="mt-20 py-10 border-t border-gray-800 text-center text-gray-400">
+            <p>© 2023 WEBINA Digital. All rights reserved.</p>
+            <p class="mt-2">Contact: support@webina.com | Phone: +1 (234) 567-8900</p>
+        </footer>
+    </div>
+</body>
+
+</html>
