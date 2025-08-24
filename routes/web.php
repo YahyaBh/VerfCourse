@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseController;
@@ -101,6 +102,12 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/course/{id}', [CourseController::class, 'destroy'])->name('api.course.delete');
     Route::put('/course/toggle-active/{id}', [CourseController::class, 'toggleActive'])->name('api.course.toggle-active');
 
+
+
+    //Attendance and Sessions
+    Route::get('/courses/{course}/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::post('/courses/{course}/attendance/session', [AttendanceController::class, 'storeSession'])->name('attendance.session.store');
+    Route::patch('/sessions/{session}/attendance/{attendance}', [AttendanceController::class, 'updateAttendance'])->name('attendance.update');
 });
 
 

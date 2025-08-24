@@ -136,6 +136,7 @@ export default function Login({ status, canResetPassword }) {
                                         />
                                         <span className="text-white/70">Remember me</span>
                                     </label>
+                                    <br/>
                                     {canResetPassword && (
                                         <Link
                                             href={route("password.request")}
@@ -143,7 +144,17 @@ export default function Login({ status, canResetPassword }) {
                                         >
                                             Forgot password?
                                         </Link>
+
+
                                     )}
+
+                                    <Link
+                                        href={route("register")}
+                                        className="text-[#FFE662] hover:underline"
+                                    >
+                                        Create account
+                                    </Link>
+
                                 </div>
 
                                 {/* Submit button */}

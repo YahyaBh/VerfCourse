@@ -36,4 +36,10 @@ class Course extends Model
             ])
             ->withTimestamps();
     }
+
+
+    public function sessions()
+    {
+        return $this->hasMany(Session::class);
+    }
 }

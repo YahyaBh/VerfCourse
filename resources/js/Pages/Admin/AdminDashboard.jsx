@@ -23,7 +23,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [stats, setStats] = useState(initialStats);
-    const [certificateTrends, setCertificateTrends] = useState(new Array(12).fill(0));
+    const [studentTrends, setStudentTrends] = useState(new Array(12).fill(0));
 
     // Search handler
     const handleSearch = (e) => {
@@ -43,14 +43,16 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
 
     // Data processing
     useEffect(() => {
-        // Process certificate trends data
+        // Process student trends data - group students by registration month
         const monthlyData = new Array(12).fill(0);
-        certificates.forEach(cert => {
-            const month = new Date(cert.issued_date).getMonth();
-            monthlyData[month]++;
+        students.forEach(student => {
+            if (student.created_at) {
+                const month = new Date(student.created_at).getMonth();
+                monthlyData[month]++;
+            }
         });
-        setCertificateTrends(monthlyData);
-    }, [certificates]);
+        setStudentTrends(monthlyData);
+    }, [students]);
 
     // Actions
     const handleDelete = async (id) => {
@@ -104,13 +106,13 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
         }
     };
 
-    // Trends chart (certificates issued over months)
+    // Trends chart (students registered over months)
     const trendsData = {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
             {
-                label: "Certificates Issued",
-                data: certificateTrends,
+                label: "Students Registered",
+                data: studentTrends,
                 borderColor: "#FFE662",
                 backgroundColor: "rgba(253, 224, 71, 0.2)",
                 tension: 0.4,
@@ -119,20 +121,20 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
         ],
     };
 
-    // Certificate status distribution (Pie chart)
-    const certificateStatusData = {
-        labels: ["Active", "Blocked", "Issued Today"],
+    // Student status distribution (Pie chart)
+    const studentStatusData = {
+        labels: ["Active", "Banned", "Pending Payment"],
         datasets: [
             {
                 data: [
-                    stats.totalCertificates - stats.blocked,
-                    stats.blocked,
-                    stats.today
+                    students.filter(s => s.status === 'active').length,
+                    students.filter(s => s.status === 'banned').length,
+                    students.filter(s => s.payment_status === 'pending').length
                 ],
                 backgroundColor: [
                     "rgba(74, 222, 128, 0.8)", // Green for Active
-                    "rgba(239, 68, 68, 0.8)",  // Red for Blocked
-                    "rgba(253, 224, 71, 0.8)"   // Yellow for Issued Today
+                    "rgba(239, 68, 68, 0.8)",  // Red for Banned
+                    "rgba(253, 224, 71, 0.8)"   // Yellow for Pending Payment
                 ],
                 borderColor: [
                     "rgba(74, 222, 128, 1)",
@@ -159,7 +161,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Dashboard
                             </h1>
-                            <p className="text-gray-400">Overview of your certificate activity</p>
+                            <p className="text-gray-400">Overview of your students and courses</p>
                         </div>
                         <div className="flex items-center space-x-3">
                             {/* Search input */}
@@ -204,30 +206,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Total Certificates</h3>
-                                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 11V7a3 3 0 016 0v4" />
-                                        <rect x="5" y="11" width="14" height="10" rx="2" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-yellow-500">{stats.totalCertificates ?? '-'}</div>
-                        </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Blocked</h3>
-                                <div className="p-2 bg-red-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m-12.728 12.728L5.636 5.636" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-red-500">{stats.blocked ?? '-'}</div>
-                        </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Students</h3>
+                                <h3 className="text-sm text-gray-400">Total Students</h3>
                                 <div className="p-2 bg-green-500/20 rounded-lg">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 011.933-0.067 4.501 20.118a17.933 17.933 0 01-8.618-3.04A17.933 17.933 0 01-8.618 3.04z" />
@@ -236,13 +215,35 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                             </div>
                             <div className="text-3xl font-bold text-green-500">{stats.totalStudents ?? '-'}</div>
                         </div>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Active Students</h3>
+                                <div className="p-2 bg-blue-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-blue-500">{students.filter(s => s.status === 'active').length}</div>
+                        </div>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Pending Payments</h3>
+                                <div className="p-2 bg-yellow-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-yellow-500">{students.filter(s => s.payment_status === 'pending').length}</div>
+                        </div>
                     </div>
 
-                    {/* Certificate charts */}
+                    {/* Student charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Trends chart */}
                         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Certificate Issued Trends</h3>
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Student Registration Trends</h3>
                             <div style={{ height: '300px' }} className="relative">
                                 <Line
                                     data={trendsData}
@@ -279,12 +280,12 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                             </div>
                         </div>
 
-                        {/* Certificate status chart */}
+                        {/* Student status chart */}
                         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Certificate Status Distribution</h3>
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Student Status Distribution</h3>
                             <div style={{ height: '300px' }} className="relative">
                                 <Pie
-                                    data={certificateStatusData}
+                                    data={studentStatusData}
                                     options={{
                                         responsive: true,
                                         maintainAspectRatio: false,
@@ -431,38 +432,38 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                         {/* Additional widget */}
                         <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <h3 className="text-lg font-semibold text-yellow-500 mb-4">
-                                Breakdown of Activity
+                                Student Breakdown
                             </h3>
                             {/* Example minimalist chart using divs; replace with real chart if desired */}
                             <div className="space-y-4">
                                 <div>
                                     <div className="flex justify-between mb-1 text-sm">
-                                        <span className="text-gray-300">Active</span>
+                                        <span className="text-gray-300">Active Students</span>
                                         <span className="text-gray-300">
-                                            {stats.totalCertificates - stats.blocked} ({stats.totalCertificates ? Math.round((stats.totalCertificates - stats.blocked) / stats.totalCertificates * 100) : 0}%)
+                                            {students.filter(s => s.status === 'active').length} ({students.length ? Math.round((students.filter(s => s.status === 'active').length / students.length) * 100) : 0}%)
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-600 h-2 rounded-full">
                                         <div
                                             className="h-full bg-green-500 rounded-full"
                                             style={{
-                                                width: `${stats.totalCertificates ? ((stats.totalCertificates - stats.blocked) / stats.totalCertificates) * 100 : 0}%`,
+                                                width: `${students.length ? (students.filter(s => s.status === 'active').length / students.length) * 100 : 0}%`,
                                             }}
                                         ></div>
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between mb-1 text-sm">
-                                        <span className="text-gray-300">Blocked</span>
+                                        <span className="text-gray-300">Banned Students</span>
                                         <span className="text-gray-300">
-                                            {stats.blocked} ({stats.totalCertificates ? Math.round((stats.blocked / stats.totalCertificates) * 100) : 0}%)
+                                            {students.filter(s => s.status === 'banned').length} ({students.length ? Math.round((students.filter(s => s.status === 'banned').length / students.length) * 100) : 0}%)
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-600 h-2 rounded-full">
                                         <div
                                             className="h-full bg-red-500 rounded-full"
                                             style={{
-                                                width: `${stats.totalCertificates ? (stats.blocked / stats.totalCertificates) * 100 : 0}%`,
+                                                width: `${students.length ? (students.filter(s => s.status === 'banned').length / students.length) * 100 : 0}%`,
                                             }}
                                         ></div>
                                     </div>

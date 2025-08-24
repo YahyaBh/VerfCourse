@@ -38,4 +38,10 @@ class Student extends Model
             ])
             ->withTimestamps();
     }
+
+
+    public function attendance()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }
