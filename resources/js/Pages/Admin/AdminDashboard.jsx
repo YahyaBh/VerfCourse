@@ -1,6 +1,5 @@
-// resources/js/Pages/AdminDashboard.jsx
 import React, { useState, useEffect } from "react";
-import { router, Head, Link } from "@inertiajs/react";
+import { router, Head } from "@inertiajs/react";
 import toast from "react-hot-toast";
 import AdminSidebar from "@/Components/AdminSidebar";
 import { Line, Pie } from "react-chartjs-2";
@@ -17,14 +16,14 @@ ChartJS.register(
     Legend,
     ArcElement
 );
-const AdminDashboard = () => {
-    const [certificates, setCertificates] = useState([]);
-    const [filteredCertificates, setFilteredCertificates] = useState([]);
+
+const AdminDashboard = ({ certificates: initialCertificates = [], students = [], courses = [], stats: initialStats = {} }) => {
+    const [certificates, setCertificates] = useState(initialCertificates);
+    const [filteredCertificates, setFilteredCertificates] = useState(initialCertificates);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [stats, setStats] = useState({ total: 0, blocked: 0, today: 0 });
-    const [certificateTrends, setCertificateTrends] = useState([]);
-
+    const [stats, setStats] = useState(initialStats);
+    const [certificateTrends, setCertificateTrends] = useState(new Array(12).fill(0));
 
     // Search handler
     const handleSearch = (e) => {
@@ -42,56 +41,16 @@ const AdminDashboard = () => {
         toast.success("Search completed successfully");
     };
 
-
-    // Data fetching
+    // Data processing
     useEffect(() => {
-        const fetchCertificates = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch("/certificates");
-                const data = await response.json();
-                if (response.ok) {
-                    setCertificates(data);
-                    setFilteredCertificates(data);
-
-                    // Create the data for trends chart
-                    const trends = data.map(cert => {
-                        const month = new Date(cert.issued_date).getMonth() + 1;
-                        return month;
-                    });
-                    setCertificateTrends(trends);
-
-                    toast.success("Certificates loaded successfully");
-                } else {
-                    throw new Error(data.error || "Failed to fetch certificates.");
-                }
-
-            } catch (error) {
-                toast.error("Error fetching certificates.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        const fetchStats = async () => {
-            try {
-                const response = await fetch("/admin/stats");
-                const data = await response.json();
-                if (response.ok) {
-                    setStats(data);
-                    toast.success("Stats loaded successfully");
-                } else {
-                    throw new Error(data.error || "Failed to fetch stats.");
-                }
-            } catch (error) {
-                toast.error("Error fetching stats");
-            }
-        };
-
-
-        fetchCertificates();
-        fetchStats();
-    }, []);
+        // Process certificate trends data
+        const monthlyData = new Array(12).fill(0);
+        certificates.forEach(cert => {
+            const month = new Date(cert.issued_date).getMonth();
+            monthlyData[month]++;
+        });
+        setCertificateTrends(monthlyData);
+    }, [certificates]);
 
     // Actions
     const handleDelete = async (id) => {
@@ -108,7 +67,6 @@ const AdminDashboard = () => {
             setLoading(false);
         }
     };
-
 
     const handleBlock = async (id) => {
         setLoading(true);
@@ -128,7 +86,6 @@ const AdminDashboard = () => {
         }
     };
 
-
     const handleUnblock = async (id) => {
         setLoading(true);
         try {
@@ -147,19 +104,15 @@ const AdminDashboard = () => {
         }
     };
 
-
     // Trends chart (certificates issued over months)
     const trendsData = {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
             {
                 label: "Certificates Issued",
-                data: certificateTrends.reduce((acc, month) => {
-                    acc[month - 1] = acc[month - 1] + 1 || 1;
-                    return acc;
-                }, new Array(12).fill(0)),
+                data: certificateTrends,
                 borderColor: "#FFE662",
-                backgroundColor: "#FFE66280",
+                backgroundColor: "rgba(253, 224, 71, 0.2)",
                 tension: 0.4,
                 fill: true,
             },
@@ -171,9 +124,21 @@ const AdminDashboard = () => {
         labels: ["Active", "Blocked", "Issued Today"],
         datasets: [
             {
-                data: [stats.total - stats.blocked, stats.blocked, stats.today],
-                backgroundColor: ["#4CAF50", "#FF5722", "#FFE662"],
-                borderColor: ["#4CAF50", "#FF5722", "#FFE662"],
+                data: [
+                    stats.totalCertificates - stats.blocked,
+                    stats.blocked,
+                    stats.today
+                ],
+                backgroundColor: [
+                    "rgba(74, 222, 128, 0.8)", // Green for Active
+                    "rgba(239, 68, 68, 0.8)",  // Red for Blocked
+                    "rgba(253, 224, 71, 0.8)"   // Yellow for Issued Today
+                ],
+                borderColor: [
+                    "rgba(74, 222, 128, 1)",
+                    "rgba(239, 68, 68, 1)",
+                    "rgba(253, 224, 71, 1)"
+                ],
                 borderWidth: 1,
             },
         ],
@@ -182,8 +147,7 @@ const AdminDashboard = () => {
     return (
         <>
             <Head title="Admin Dashboard" />
-
-            <div className="flex min-h-screen bg-[#2d2d2d] text-white">
+            <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
                 {/* Sidebar */}
                 <AdminSidebar activeItem="Dashboard" />
 
@@ -192,7 +156,7 @@ const AdminDashboard = () => {
                     {/* Top bar */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-8">
                         <div>
-                            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#FFE662]">
+                            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Dashboard
                             </h1>
                             <p className="text-gray-400">Overview of your certificate activity</p>
@@ -202,7 +166,7 @@ const AdminDashboard = () => {
                             <div className="relative flex items-center">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    className="absolute left-3 w-4 h-4 text-gray-500"
+                                    className="absolute left-3 w-5 h-5 text-gray-500"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -216,14 +180,14 @@ const AdminDashboard = () => {
                                     value={searchTerm}
                                     onChange={handleSearch}
                                     placeholder="Search certificates..."
-                                    className="pl-10 pr-4 py-2 rounded-lg bg-[#3a3a3a] text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFE662]"
+                                    className="pl-10 pr-4 py-3 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                                 />
                             </div>
-                            {/* Date display (can be replaced with a date picker) */}
+                            {/* Date display */}
                             <div className="flex items-center space-x-2 text-gray-400">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    className="w-5 h-5 text-[#FFE662]"
+                                    className="w-5 h-5 text-yellow-500"
                                     fill="none"
                                     viewBox="0 0 24 24"
                                     stroke="currentColor"
@@ -236,54 +200,102 @@ const AdminDashboard = () => {
                         </div>
                     </div>
 
-
                     {/* Stats summary */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-[#333] p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Total</h3>
+                                <h3 className="text-sm text-gray-400">Total Certificates</h3>
+                                <div className="p-2 bg-yellow-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 11V7a3 3 0 016 0v4" />
+                                        <rect x="5" y="11" width="14" height="10" rx="2" />
+                                    </svg>
+                                </div>
                             </div>
-                            <div className="text-3xl font-bold text-[#FFE662]">{stats.total ?? '-'}</div>
+                            <div className="text-3xl font-bold text-yellow-500">{stats.totalCertificates ?? '-'}</div>
                         </div>
-                        <div className="bg-[#333] p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Blocked</h3>
+                                <div className="p-2 bg-red-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m-12.728 12.728L5.636 5.636" />
+                                    </svg>
+                                </div>
                             </div>
-                            <div className="text-3xl font-bold text-[#FFE662]">{stats.blocked ?? '-'}</div>
+                            <div className="text-3xl font-bold text-red-500">{stats.blocked ?? '-'}</div>
                         </div>
-                        <div className="bg-[#333] p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Issued Today</h3>
+                                <h3 className="text-sm text-gray-400">Students</h3>
+                                <div className="p-2 bg-green-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 011.933-0.067 4.501 20.118a17.933 17.933 0 01-8.618-3.04A17.933 17.933 0 01-8.618 3.04z" />
+                                    </svg>
+                                </div>
                             </div>
-                            <div className="text-3xl font-bold text-[#FFE662]">{stats.today ?? '-'}</div>
+                            <div className="text-3xl font-bold text-green-500">{stats.totalStudents ?? '-'}</div>
                         </div>
                     </div>
 
                     {/* Certificate charts */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                         {/* Trends chart */}
-                        <div className="bg-[#333] p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-[#FFE662] mb-4">Certificate Issued Trends</h3>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Certificate Issued Trends</h3>
                             <div style={{ height: '300px' }} className="relative">
                                 <Line
                                     data={trendsData}
                                     options={{
                                         responsive: true,
-                                        maintainAspectRatio: false, // Ensures it can adjust based on the container
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                labels: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            },
+                                        },
+                                        scales: {
+                                            x: {
+                                                grid: {
+                                                    color: 'rgba(209, 213, 219, 0.1)'
+                                                },
+                                                ticks: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            },
+                                            y: {
+                                                grid: {
+                                                    color: 'rgba(209, 213, 219, 0.1)'
+                                                },
+                                                ticks: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            }
+                                        }
                                     }}
                                 />
                             </div>
                         </div>
 
                         {/* Certificate status chart */}
-                        <div className="bg-[#333] p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-[#FFE662] mb-4">Certificate Status Distribution</h3>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Certificate Status Distribution</h3>
                             <div style={{ height: '300px' }} className="relative">
                                 <Pie
                                     data={certificateStatusData}
                                     options={{
                                         responsive: true,
-                                        maintainAspectRatio: false, // Allow chart to resize based on its container
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'right',
+                                                labels: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            }
+                                        }
                                     }}
                                 />
                             </div>
@@ -293,52 +305,59 @@ const AdminDashboard = () => {
                     {/* Certificate table and extra panel */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Certificates Table */}
-                        <div className="lg:col-span-2 bg-[#333] p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <h2 className="text-xl font-semibold text-[#FFE662] mb-5">
+                        <div className="lg:col-span-2 bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <h2 className="text-xl font-semibold text-yellow-500 mb-5">
                                 Recent Certificates
                             </h2>
                             {loading ? (
-                                <p>Loading certificates...</p>
+                                <div className="flex justify-center items-center h-64">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+                                </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="border-b border-gray-600 text-gray-400">
-                                                <th className="py-2">Certificate ID</th>
-                                                <th className="py-2">Student Name</th>
-                                                <th className="py-2">Course</th>
-                                                <th className="py-2">Issued</th>
-                                                <th className="py-2">Status</th>
-                                                <th className="py-2">Actions</th>
+                                                <th className="py-3 px-4">Certificate ID</th>
+                                                <th className="py-3 px-4">Student Name</th>
+                                                <th className="py-3 px-4">Course</th>
+                                                <th className="py-3 px-4">Issued</th>
+                                                <th className="py-3 px-4">Status</th>
+                                                <th className="py-3 px-4">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {filteredCertificates.slice(0, 6).map((certificate) => (
                                                 <tr
                                                     key={certificate.id}
-                                                    className="border-b border-gray-800 hover:bg-[#3a3a3a] transition-colors"
+                                                    className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors"
                                                 >
-                                                    <td className="py-2">
+                                                    <td className="py-3 px-4">
                                                         <span className="text-sm text-gray-300">
                                                             {certificate.certificate_number}
                                                         </span>
                                                     </td>
-                                                    <td className="py-2">
-                                                        <span className="text-sm text-gray-300">
-                                                            {certificate.student_name}
-                                                        </span>
+                                                    <td className="py-3 px-4">
+                                                        <div className="flex items-center">
+                                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs">
+                                                                {certificate.student_name?.charAt(0)}
+                                                            </div>
+                                                            <span className="ml-2 text-sm text-gray-300">
+                                                                {certificate.student_name}
+                                                            </span>
+                                                        </div>
                                                     </td>
-                                                    <td className="py-2">
+                                                    <td className="py-3 px-4">
                                                         <span className="text-sm text-gray-300">
                                                             {certificate.course_name}
                                                         </span>
                                                     </td>
-                                                    <td className="py-2">
+                                                    <td className="py-3 px-4">
                                                         <span className="text-sm text-gray-300">
                                                             {certificate.issued_date}
                                                         </span>
                                                     </td>
-                                                    <td className="py-2">
+                                                    <td className="py-3 px-4">
                                                         <span
                                                             className={`text-xs font-semibold px-3 py-1 rounded-full ${certificate.blocked
                                                                 ? "bg-red-600/20 text-red-400"
@@ -348,7 +367,7 @@ const AdminDashboard = () => {
                                                             {certificate.blocked ? "Blocked" : "Active"}
                                                         </span>
                                                     </td>
-                                                    <td className="py-2 flex items-center space-x-2">
+                                                    <td className="py-3 px-4 flex items-center space-x-2">
                                                         {/* Block/Unblock */}
                                                         <button
                                                             onClick={() =>
@@ -356,7 +375,10 @@ const AdminDashboard = () => {
                                                                     ? handleUnblock(certificate.id)
                                                                     : handleBlock(certificate.id)
                                                             }
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FFE662] text-black hover:bg-[#ffd94c] transition-colors"
+                                                            className={`w-8 h-8 flex items-center justify-center rounded-lg ${certificate.blocked
+                                                                ? "bg-green-600 text-white hover:bg-green-700"
+                                                                : "bg-yellow-600 text-black hover:bg-yellow-700"
+                                                                }`}
                                                             title={certificate.blocked ? "Unblock" : "Block"}
                                                         >
                                                             {certificate.blocked ? (
@@ -389,29 +411,8 @@ const AdminDashboard = () => {
                                                                 </svg>
                                                             )}
                                                         </button>
-                                                        {/* Delete */}
-                                                        <button
-                                                            onClick={() => handleDelete(certificate.id)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                                                            title="Delete"
-                                                        >
-                                                            <svg
-                                                                xmlns="http://www.w3.org/2000/svg"
-                                                                viewBox="0 0 24 24"
-                                                                className="w-4 h-4"
-                                                                fill="none"
-                                                                stroke="currentColor"
-                                                                strokeWidth="2"
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                            >
-                                                                <path d="M3 6h18" />
-                                                                <path d="M8 6v12" />
-                                                                <path d="M16 6v12" />
-                                                                <path d="M5 6l1-2h12l1 2" />
-                                                            </svg>
-                                                        </button>
                                                     </td>
+
                                                 </tr>
                                             ))}
                                             {filteredCertificates.length === 0 && (
@@ -427,9 +428,9 @@ const AdminDashboard = () => {
                             )}
                         </div>
 
-                        {/* Additional widget (e.g., trends / projects in progress) */}
-                        <div className="bg-[#333] p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <h3 className="text-lg font-semibold text-[#FFE662] mb-4">
+                        {/* Additional widget */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">
                                 Breakdown of Activity
                             </h3>
                             {/* Example minimalist chart using divs; replace with real chart if desired */}
@@ -438,14 +439,14 @@ const AdminDashboard = () => {
                                     <div className="flex justify-between mb-1 text-sm">
                                         <span className="text-gray-300">Active</span>
                                         <span className="text-gray-300">
-                                            {stats.total - stats.blocked} ({stats.total ? Math.round((stats.total - stats.blocked) / stats.total * 100) : 0}%)
+                                            {stats.totalCertificates - stats.blocked} ({stats.totalCertificates ? Math.round((stats.totalCertificates - stats.blocked) / stats.totalCertificates * 100) : 0}%)
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-600 h-2 rounded-full">
                                         <div
                                             className="h-full bg-green-500 rounded-full"
                                             style={{
-                                                width: `${stats.total ? ((stats.total - stats.blocked) / stats.total) * 100 : 0}%`,
+                                                width: `${stats.totalCertificates ? ((stats.totalCertificates - stats.blocked) / stats.totalCertificates) * 100 : 0}%`,
                                             }}
                                         ></div>
                                     </div>
@@ -454,30 +455,30 @@ const AdminDashboard = () => {
                                     <div className="flex justify-between mb-1 text-sm">
                                         <span className="text-gray-300">Blocked</span>
                                         <span className="text-gray-300">
-                                            {stats.blocked} ({stats.total ? Math.round((stats.blocked / stats.total) * 100) : 0}%)
+                                            {stats.blocked} ({stats.totalCertificates ? Math.round((stats.blocked / stats.totalCertificates) * 100) : 0}%)
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-600 h-2 rounded-full">
                                         <div
                                             className="h-full bg-red-500 rounded-full"
                                             style={{
-                                                width: `${stats.total ? (stats.blocked / stats.total) * 100 : 0}%`,
+                                                width: `${stats.totalCertificates ? (stats.blocked / stats.totalCertificates) * 100 : 0}%`,
                                             }}
                                         ></div>
                                     </div>
                                 </div>
                                 <div>
                                     <div className="flex justify-between mb-1 text-sm">
-                                        <span className="text-gray-300">Issued Today</span>
+                                        <span className="text-gray-300">Students Pending Payment</span>
                                         <span className="text-gray-300">
-                                            {stats.today} ({stats.total ? Math.round((stats.today / stats.total) * 100) : 0}%)
+                                            {students.filter(s => s.payment_status === 'pending').length} ({students.length ? Math.round((students.filter(s => s.payment_status === 'pending').length / students.length) * 100) : 0}%)
                                         </span>
                                     </div>
                                     <div className="w-full bg-gray-600 h-2 rounded-full">
                                         <div
                                             className="h-full bg-yellow-500 rounded-full"
                                             style={{
-                                                width: `${stats.total ? (stats.today / stats.total) * 100 : 0}%`,
+                                                width: `${students.length ? (students.filter(s => s.payment_status === 'pending').length / students.length) * 100 : 0}%`,
                                             }}
                                         ></div>
                                     </div>

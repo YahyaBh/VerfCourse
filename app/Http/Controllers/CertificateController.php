@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Certificate;
+use App\Models\Course;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -24,26 +26,26 @@ class CertificateController extends Controller
 
     public function certificates()
     {
-        return Inertia::render('Admin/Certificates');
-    }
-
-    public function index()
-    {
         $certificates = Certificate::all();
+        $students = Student::all();
+        $courses = Course::all();
 
-        if ($certificates->isEmpty()) {
-            return response()->json(['error' => 'No certificates found'], 404);
-        }
-
-        // Return certificates as JSON
-        return response()->json($certificates);
+        return Inertia::render('Admin/Certificates', [
+            'certificates' => $certificates,
+            'students' => $students,
+            'courses' => $courses
+        ]);
     }
+
+
 
 
     public function getStats()
     {
-        $total = Certificate::count();  // Simple count query to test if this works
-        return response()->json(['total' => $total]);
+        $totalCertificates = Certificate::count();  // Simple count query to test if this works
+        $totalStudents = Student::count();
+
+        return response()->json(['totalCertificates' => $totalCertificates, 'totalStudents' => $totalStudents]);
     }
 
 
@@ -69,7 +71,7 @@ class CertificateController extends Controller
     {
         $certificate = Certificate::findOrFail($id);
         $certificate->delete();
-        return redirect()->route('admin.certificates.index')->with('success', 'Certificate deleted successfully');
+        return redirect()->back();
     }
 
 
@@ -210,7 +212,7 @@ class CertificateController extends Controller
     public function update(Request $request, $id)
     {
 
-        
+
 
 
         $request->validate([

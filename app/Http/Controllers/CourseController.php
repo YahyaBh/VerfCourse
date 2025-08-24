@@ -23,7 +23,7 @@ class CourseController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'duration' => 'nullable|string|max:50',
+            'duration' => 'nullable|max:50',
             'instructor' => 'nullable|string|max:255',
             'is_active' => 'boolean',
         ]);
@@ -37,10 +37,7 @@ class CourseController extends Controller
             'is_active' => $request->is_active ?? true,
         ]);
 
-        return response()->json([
-            'message' => 'Course created successfully',
-            'course' => $course
-        ], Response::HTTP_CREATED);
+        return redirect()->back()->with('success', 'Course created successfully');
     }
 
     // Update a course
@@ -66,10 +63,7 @@ class CourseController extends Controller
             'is_active' => $request->is_active ?? true,
         ]);
 
-        return response()->json([
-            'message' => 'Course updated successfully',
-            'course' => $course
-        ], Response::HTTP_OK);
+        return redirect()->back()->with('success', 'Course updated successfully');
     }
 
     // Delete a course
@@ -79,16 +73,12 @@ class CourseController extends Controller
 
         // Check if there are students enrolled in this course
         if ($course->students()->count() > 0) {
-            return response()->json([
-                'message' => 'Cannot delete course with enrolled students'
-            ], Response::HTTP_CONFLICT);
+            return redirect()->back()->with('error', 'Cannot delete course with enrolled students');
         }
 
         $course->delete();
 
-        return response()->json([
-            'message' => 'Course deleted successfully'
-        ], Response::HTTP_OK);
+        return redirect()->back()->with('success', 'Course deleted successfully');
     }
 
     // Toggle course active status
@@ -103,9 +93,6 @@ class CourseController extends Controller
         $course->is_active = $request->is_active;
         $course->save();
 
-        return response()->json([
-            'message' => 'Course status updated successfully',
-            'course' => $course
-        ], Response::HTTP_OK);
+        return redirect()->back()->with('success', 'Course status updated successfully');
     }
 }

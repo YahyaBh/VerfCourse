@@ -53,7 +53,7 @@ const Courses = ({ courses }) => {
         setLoading(true);
 
         try {
-            const response = await axios.post("/api/course/create", newCourse);
+            const response = await axios.post("/course/create", newCourse);
 
             if (response.status === 201) {
                 toast.success("Course created successfully!");
@@ -91,7 +91,7 @@ const Courses = ({ courses }) => {
         setLoading(true);
 
         try {
-            const response = await axios.put(`/api/course/update/${selectedCourse.id}`, newCourse);
+            const response = await axios.post(`/course/update/${selectedCourse.id}`, newCourse);
 
             if (response.status === 200) {
                 toast.success("Course updated successfully!");
@@ -124,7 +124,7 @@ const Courses = ({ courses }) => {
 
         setLoading(true);
         try {
-            await axios.delete(`/api/course/${courseId}`);
+            await axios.delete(`/course/${courseId}`);
             toast.success("Course deleted successfully");
             setCoursesList(coursesList.filter((course) => course.id !== courseId));
             setFilteredCourses(filteredCourses.filter((course) => course.id !== courseId));
@@ -141,7 +141,7 @@ const Courses = ({ courses }) => {
             const course = coursesList.find(c => c.id === courseId);
             const newStatus = !course.is_active;
 
-            await axios.put(`/api/course/toggle-active/${courseId}`, {
+            await axios.put(`/course/toggle-active/${courseId}`, {
                 is_active: newStatus
             });
 
@@ -220,7 +220,7 @@ const Courses = ({ courses }) => {
                                         <td className="py-3 px-4">{course.id}</td>
                                         <td className="py-3 px-4">{course.name}</td>
                                         <td className="py-3 px-4">{course.instructor || '-'}</td>
-                                        <td className="py-3 px-4">${course.price.toFixed(2)}</td>
+                                        <td className="py-3 px-4">{parseFloat(course.price || 0).toFixed(2)} MAD</td>
                                         <td className="py-3 px-4">{course.duration || '-'}</td>
                                         <td className="py-3 px-4">
                                             <span
@@ -307,11 +307,12 @@ const Courses = ({ courses }) => {
                                 <label className="block text-gray-400">Duration</label>
                                 <input
                                     type="text"
-                                    value={newCourse.duration}
-                                    onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
+                                    value={newCourse.duration || ""} // Ensure it's never null or undefined
+                                    onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value.toString() })}
                                     className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
                                     placeholder="e.g., 8 weeks, 3 months"
                                 />
+
                             </div>
                             <div className="mb-4">
                                 <label className="block text-gray-400">Instructor</label>

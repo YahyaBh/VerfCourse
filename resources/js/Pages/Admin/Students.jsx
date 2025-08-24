@@ -242,210 +242,318 @@ const Students = ({ students, courses }) => {
         }
     };
 
+    const viewStudentDetails = (studentId) => {
+        router.visit(`/admin/students/${studentId}`);
+    };
+
+    // Get status color
+    const getStatusColor = (status) => {
+        return status === 'banned' ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400';
+    };
+
+    // Get payment status color
+    const getPaymentStatusColor = (status) => {
+        return status === 'completed' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400';
+    };
+
     return (
         <>
             <Head title="Admin Students" />
-            <div className="flex min-h-screen bg-[#2d2d2d] text-white">
+            <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
                 {/* Sidebar */}
                 <AdminSidebar activeItem="Students" />
 
                 {/* Main content area */}
                 <main className="flex-1 overflow-y-auto p-6">
                     {/* Top bar */}
-                    <div className="flex justify-between mb-8">
+                    <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h1 className="text-3xl font-extrabold text-[#FFE662]">Manage Students</h1>
-                            <p className="text-gray-400">Manage and view all your students</p>
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                                Manage Students
+                            </h1>
+                            <p className="text-gray-400 mt-2">Manage and view all your students</p>
                         </div>
                         <button
                             onClick={handleAdd}
-                            className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all"
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
                             Add New Student
                         </button>
                     </div>
 
                     {/* Search bar */}
-                    <div className="mb-6">
-                        <input
-                            type="text"
-                            placeholder="Search students..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="p-3 w-full bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFE662]"
-                        />
+                    <div className="mb-8">
+                        <div className="relative max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search students..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                            />
+                        </div>
                     </div>
 
                     {/* Students Table */}
                     {loading ? (
-                        <p>Loading students...</p>
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+                        </div>
                     ) : (
-                        <table className="min-w-full text-left text-gray-300">
-                            <thead className="border-b border-gray-600">
-                                <tr>
-                                    <th className="py-3 px-4">Student ID</th>
-                                    <th className="py-3 px-4">Name</th>
-                                    <th className="py-3 px-4">Email</th>
-                                    <th className="py-3 px-4">Course</th>
-                                    <th className="py-3 px-4">Payment Status</th>
-                                    <th className="py-3 px-4">Status</th>
-                                    <th className="py-3 px-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredStudents.map((student) => (
-                                    <tr key={student.id} className="border-b border-gray-600 hover:bg-[#444]">
-                                        <td className="py-3 px-4">{student.id}</td>
-                                        <td className="py-3 px-4">{student.first_name} {student.last_name}</td>
-                                        <td className="py-3 px-4">{student.email}</td>
-                                        <td className="py-3 px-4">{student.course_name || '-'}</td>
-                                        <td className="py-3 px-4">
-                                            <select
-                                                value={paymentStatus[student.id] || student.payment_status}
-                                                onChange={(e) =>
-                                                    handlePaymentStatusChange(student.id, e.target.value)
-                                                }
-                                                className="bg-[#3a3a3a] text-gray-200 rounded p-1"
-                                            >
-                                                <option value="pending">Pending</option>
-                                                <option value="completed">Completed</option>
-                                            </select>
-                                        </td>
-                                        <td className="py-3 px-4">
-                                            <span
-                                                className={`px-3 py-1 rounded-full ${student.status === "banned" ? "bg-red-500" : "bg-green-500"} text-white`}
-                                            >
-                                                {student.status === "banned" ? "Banned" : "Active"}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 flex space-x-3">
-                                            <button
-                                                onClick={() => handleEdit(student)}
-                                                className="bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-all"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() =>
-                                                    student.status === "banned"
-                                                        ? handleUnban(student.id)
-                                                        : handleBan(student.id)
-                                                }
-                                                className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all"
-                                            >
-                                                {student.status === "banned" ? "Unban" : "Ban"}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(student.id)}
-                                                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-all"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredStudents.length === 0 && (
-                                    <tr>
-                                        <td colSpan="7" className="py-4 text-center text-gray-400">
-                                            No students found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-700">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-700">
+                                    <thead className="bg-gray-800/50">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Student ID
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Name
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Email
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Course
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Payment Status
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-700">
+                                        {filteredStudents.map((student) => (
+                                            <tr key={student.id} className="hover:bg-gray-800/30 transition-colors duration-200">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">
+                                                    {student.id}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
+                                                            {student.first_name.charAt(0)}{student.last_name.charAt(0)}
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="text-sm font-medium text-white">
+                                                                {student.first_name} {student.last_name}
+                                                            </div>
+                                                            <div className="text-sm text-gray-400">
+                                                                {student.email}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {student.email}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {student.course_name || '-'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <select
+                                                        value={paymentStatus[student.id] || student.payment_status}
+                                                        onChange={(e) =>
+                                                            handlePaymentStatusChange(student.id, e.target.value)
+                                                        }
+                                                        className="bg-gray-700 border border-gray-600 text-gray-200 rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                                                    >
+                                                        <option value="pending">Pending</option>
+                                                        <option value="completed">Completed</option>
+                                                    </select>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(student.status)}`}>
+                                                        {student.status === "banned" ? "Banned" : "Active"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end space-x-2">
+                                                        <button
+                                                            onClick={() => viewStudentDetails(student.id)}
+                                                            className="text-blue-500 hover:text-blue-400 transition-colors duration-200"
+                                                            title="View Details"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleEdit(student)}
+                                                            className="text-yellow-500 hover:text-yellow-400 transition-colors duration-200"
+                                                            title="Edit"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() =>
+                                                                student.status === "banned"
+                                                                    ? handleUnban(student.id)
+                                                                    : handleBan(student.id)
+                                                            }
+                                                            className={`${student.status === "banned" ? "text-green-500 hover:text-green-400" : "text-yellow-500 hover:text-yellow-400"} transition-colors duration-200`}
+                                                            title={student.status === "banned" ? "Unban" : "Ban"}
+                                                        >
+                                                            {student.status === "banned" ? (
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                                </svg>
+                                                            ) : (
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                                </svg>
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(student.id)}
+                                                            className="text-red-500 hover:text-red-400 transition-colors duration-200"
+                                                            title="Delete"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {filteredStudents.length === 0 && (
+                                <div className="text-center py-12">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                    </svg>
+                                    <h3 className="mt-2 text-sm font-medium text-gray-400">No students found</h3>
+                                    <p className="mt-1 text-sm text-gray-500">Try adjusting your search or create a new student.</p>
+                                    <div className="mt-6">
+                                        <button
+                                            onClick={handleAdd}
+                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Add New Student
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </main>
             </div>
 
             {/* Modal for Add Student */}
             {isAdding && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-[#333] p-8 rounded-xl w-96">
-                        <h3 className="text-2xl font-semibold text-[#FFE662] mb-6">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
+                        <h3 className="text-2xl font-bold text-white mb-6">
                             Add New Student
                         </h3>
                         <form onSubmit={handleCreate}>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">First Name</label>
-                                <input
-                                    type="text"
-                                    value={newStudent.first_name}
-                                    onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={newStudent.last_name}
-                                    onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Email</label>
-                                <input
-                                    type="email"
-                                    value={newStudent.email}
-                                    onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Course</label>
-                                <select
-                                    value={newStudent.course_id}
-                                    onChange={(e) => setNewStudent({ ...newStudent, course_id: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                    required
-                                >
-                                    <option value="">Select a course</option>
-                                    {courses && courses.map(course => (
-                                        <option key={course.id} value={course.id}>{course.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Status</label>
-                                <select
-                                    value={newStudent.status}
-                                    onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="banned">Banned</option>
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Payment Status</label>
-                                <select
-                                    value={newStudent.payment_status}
-                                    onChange={(e) => setNewStudent({ ...newStudent, payment_status: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="completed">Completed</option>
-                                </select>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-gray-400 mb-2">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={newStudent.first_name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={newStudent.last_name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={newStudent.email}
+                                        onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Course</label>
+                                    <select
+                                        value={newStudent.course_id}
+                                        onChange={(e) => setNewStudent({ ...newStudent, course_id: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="">Select a course</option>
+                                        {courses && courses.map(course => (
+                                            <option key={course.id} value={course.id}>
+                                                {course.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Status</label>
+                                    <select
+                                        value={newStudent.status}
+                                        onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="banned">Banned</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Payment Status</label>
+                                    <select
+                                        value={newStudent.payment_status}
+                                        onChange={(e) => setNewStudent({ ...newStudent, payment_status: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div className="flex justify-between">
+                            <div className="flex justify-between mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setIsAdding(false)}
-                                    className="bg-gray-600 text-white py-2 px-4 rounded-lg"
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all disabled:opacity-10"
+                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
                                 >
-                                    {!loading ? "Add Student" : "Processing..."}
+                                    {loading ? "Processing..." : "Add Student"}
                                 </button>
                             </div>
                         </form>
@@ -455,93 +563,96 @@ const Students = ({ students, courses }) => {
 
             {/* Modal for Edit Student */}
             {isEditing && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-[#333] p-8 rounded-xl w-96">
-                        <h3 className="text-2xl font-semibold text-[#FFE662] mb-6">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
+                        <h3 className="text-2xl font-bold text-white mb-6">
                             Edit Student
                         </h3>
                         <form onSubmit={handleUpdate}>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">First Name</label>
-                                <input
-                                    type="text"
-                                    value={newStudent.first_name}
-                                    onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={newStudent.last_name}
-                                    onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Email</label>
-                                <input
-                                    type="email"
-                                    value={newStudent.email}
-                                    onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Course</label>
-                                <select
-                                    value={newStudent.course_id}
-                                    onChange={(e) => setNewStudent({ ...newStudent, course_id: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                    required
-                                >
-                                    <option value="">Select a course</option>
-                                    {courses && courses.map(course => (
-                                        <option key={course.id} value={course.id}>{course.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Status</label>
-                                <select
-                                    value={newStudent.status}
-                                    onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                >
-                                    <option value="active">Active</option>
-                                    <option value="banned">Banned</option>
-                                </select>
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Payment Status</label>
-                                <select
-                                    value={newStudent.payment_status}
-                                    onChange={(e) => setNewStudent({ ...newStudent, payment_status: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="completed">Completed</option>
-                                </select>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-gray-400 mb-2">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={newStudent.first_name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, first_name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={newStudent.last_name}
+                                        onChange={(e) => setNewStudent({ ...newStudent, last_name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={newStudent.email}
+                                        onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Course</label>
+                                    <select
+                                        value={newStudent.course_id}
+                                        onChange={(e) => setNewStudent({ ...newStudent, course_id: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="">Select a course</option>
+                                        {courses && courses.map(course => (
+                                            <option key={course.id} value={course.id}>
+                                                {course.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Status</label>
+                                    <select
+                                        value={newStudent.status}
+                                        onChange={(e) => setNewStudent({ ...newStudent, status: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="active">Active</option>
+                                        <option value="banned">Banned</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Payment Status</label>
+                                    <select
+                                        value={newStudent.payment_status}
+                                        onChange={(e) => setNewStudent({ ...newStudent, payment_status: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    >
+                                        <option value="pending">Pending</option>
+                                        <option value="completed">Completed</option>
+                                    </select>
+                                </div>
                             </div>
 
-                            <div className="flex justify-between">
+                            <div className="flex justify-between mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className="bg-gray-600 text-white py-2 px-4 rounded-lg"
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all disabled:opacity-10"
+                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
                                 >
-                                    {!loading ? "Update Student" : "Processing..."}
+                                    {loading ? "Processing..." : "Update Student"}
                                 </button>
                             </div>
                         </form>

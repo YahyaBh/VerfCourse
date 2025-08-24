@@ -66,35 +66,39 @@ Route::middleware(['auth'])->group(function () {
 
     // Certificate management routes
     Route::get('/certificates', [CertificateController::class, 'index'])->name('admin.certificates.index');
-    Route::post('/certificate/create', [CertificateController::class, 'store'])->name('admin.certificate.create');
+    Route::post('/certificate/store', [CertificateController::class, 'store'])->name('certificate.store');
     Route::post('/certificate/update/{id}', [CertificateController::class, 'update'])->name('admin.certificate.update');
     Route::post('/admin/certificate/block/{id}', [CertificateController::class, 'block'])->name('admin.certificate.block');
     Route::post('/admin/certificate/unblock/{id}', [CertificateController::class, 'unblock'])->name('admin.certificate.unblock');
-    Route::delete('/admin/certificate/{id}', [CertificateController::class, 'destroy'])->name('admin.certificate.delete');
+    Route::delete('/certificate/destroy/{id}', [CertificateController::class, 'destroy'])->name('admin.certificate.delete');
 
 
-
-    //Student management routes
-    Route::post('/student/store', [StudentController::class, 'store']);
-    Route::post('/student/enroll', [StudentController::class, 'enrollStudentInCourse']);
-    Route::put('/student/grade/{studentCourseId}', [StudentController::class, 'updateGrades']);
-    Route::delete('/student/{studentId}', [StudentController::class, 'destroy']); // Delete student
-    Route::put('/student/ban/{studentId}', [StudentController::class, 'banStudent']); // Ban student
-    Route::put('/student/unban/{studentId}', [StudentController::class, 'unbanStudent']); // Unban student
-    Route::put('/student/payment-status/{studentId}', [StudentController::class, 'updatePaymentStatus']); // Update payment status
-    Route::put('/student/change-course/{studentId}', [StudentController::class, 'changeCourse']); // Change course
 
     //Students management routes
     Route::get('/admin/students', [StudentController::class, 'index']); // Get all students
+    Route::get('/admin/students/{id}', [StudentController::class, 'show'])->name('admin.students.show');
+
+
+    //Student management routes
+    Route::post('/api/student/create', [StudentController::class, 'store'])->name('api.student.create');
+    Route::post('/api/student/enroll', [StudentController::class, 'enrollStudentInCourse']);
+    Route::put('/api/student/grade/{studentCourseId}', [StudentController::class, 'updateGrades']);
+    Route::delete('/api/student/{studentId}', [StudentController::class, 'destroy']); // Delete student
+    Route::put('/api/student/ban/{studentId}', [StudentController::class, 'banStudent']); // Ban student
+    Route::put('/api/student/unban/{studentId}', [StudentController::class, 'unbanStudent']); // Unban student
+    Route::put('/api/student/payment-status/{studentId}', [StudentController::class, 'updatePaymentStatus']); // Update payment status
+    Route::put('/api/student/change-course/{studentId}', [StudentController::class, 'changeCourse']); // Change course
+
+
 
 
 
     // Admin Courses Routes
     Route::get('/admin/courses', [CourseController::class, 'index'])->name('admin.courses');
-    Route::post('/api/course/create', [CourseController::class, 'store'])->name('api.course.create');
-    Route::put('/api/course/update/{id}', [CourseController::class, 'update'])->name('api.course.update');
-    Route::delete('/api/course/{id}', [CourseController::class, 'destroy'])->name('api.course.delete');
-    Route::put('/api/course/toggle-active/{id}', [CourseController::class, 'toggleActive'])->name('api.course.toggle-active');
+    Route::post('/course/create', [CourseController::class, 'store'])->name('api.course.create');
+    Route::post('/course/update/{id}', [CourseController::class, 'update'])->name('api.course.update');
+    Route::delete('/course/{id}', [CourseController::class, 'destroy'])->name('api.course.delete');
+    Route::put('/course/toggle-active/{id}', [CourseController::class, 'toggleActive'])->name('api.course.toggle-active');
 });
 
 

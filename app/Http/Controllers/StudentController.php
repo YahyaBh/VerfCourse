@@ -52,7 +52,7 @@ class StudentController extends Controller
         }
 
         return response()->json([
-            'message' => 'Student created successfully', 
+            'message' => 'Student created successfully',
             'student' => $student
         ], Response::HTTP_CREATED);
     }
@@ -61,7 +61,7 @@ class StudentController extends Controller
     public function update(Request $request, $id)
     {
         $student = Student::findOrFail($id);
-        
+
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -83,7 +83,7 @@ class StudentController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Student updated successfully', 
+            'message' => 'Student updated successfully',
             'student' => $student
         ], Response::HTTP_OK);
     }
@@ -92,16 +92,30 @@ class StudentController extends Controller
     public function destroy($id)
     {
         $student = Student::findOrFail($id);
-        
+
         // Remove all course enrollments for this student
         StudentCourse::where('student_id', $id)->delete();
-        
+
         $student->delete();
-        
+
         return response()->json([
             'message' => 'Student deleted successfully'
         ], Response::HTTP_OK);
     }
+
+    public function show($id)
+    {
+        $student = Student::findOrFail($id);
+        $courses = Course::all();
+        $studentCourses = $student->courses()->withPivot(['weekly_quizzes_score', 'exercises_score', 'final_project_score', 'participation_score', 'total_score', 'grade'])->get();
+
+        return Inertia::render('Admin/Student', [
+            'student' => $student,
+            'courses' => $courses,
+            'studentCourses' => $studentCourses
+        ]);
+    }
+
 
     // Ban a student
     public function ban($id)
@@ -109,7 +123,7 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
         $student->status = 'banned';
         $student->save();
-        
+
         return response()->json([
             'message' => 'Student banned successfully',
             'student' => $student
@@ -122,7 +136,7 @@ class StudentController extends Controller
         $student = Student::findOrFail($id);
         $student->status = 'active';
         $student->save();
-        
+
         return response()->json([
             'message' => 'Student unbanned successfully',
             'student' => $student
@@ -135,11 +149,11 @@ class StudentController extends Controller
         $request->validate([
             'status' => 'required|in:pending,completed',
         ]);
-        
+
         $student = Student::findOrFail($id);
         $student->payment_status = $request->status;
         $student->save();
-        
+
         return response()->json([
             'message' => 'Payment status updated successfully',
             'student' => $student
@@ -158,7 +172,7 @@ class StudentController extends Controller
         $existingEnrollment = StudentCourse::where('student_id', $request->student_id)
             ->where('course_id', $request->course_id)
             ->first();
-            
+
         if ($existingEnrollment) {
             return response()->json([
                 'message' => 'Student is already enrolled in this course'
@@ -177,7 +191,7 @@ class StudentController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Student enrolled successfully in the course', 
+            'message' => 'Student enrolled successfully in the course',
             'student_course' => $studentCourse
         ], Response::HTTP_OK);
     }

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2)->default(0.00);
-            $table->integer('duration')->nullable(); // in weeks or months
+            $table->integer('duration')->nullable();
             $table->string('instructor')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
