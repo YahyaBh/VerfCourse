@@ -5,7 +5,7 @@ import AdminSidebar from "@/Components/AdminSidebar";
 import axios from "axios";
 import moment from "moment";
 
-const StudentDetails = ({ student, courses, studentCourses }) => {
+const StudentDetails = ({ student, courses = [], studentCourses = [] }) => {
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null);
@@ -198,15 +198,32 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
         !studentCourses.some(sc => sc.course_id === course.id)
     );
 
-    // Get grade color
+    // Helper function to get course name by ID
+    const getCourseName = (courseId) => {
+        if (!courseId) return 'No Course';
+
+        // First check if the course is in the courses array
+        const course = courses.find(c => c.id === courseId);
+        if (course) return course.name;
+
+        // If not found, check if it's in the studentCourses array
+        const studentCourse = studentCourses.find(sc => sc.course_id === courseId);
+        if (studentCourse && studentCourse.course) {
+            return studentCourse.course.name;
+        }
+
+        return 'Unknown Course';
+    };
+
+    // Helper function to get grade color
     const getGradeColor = (grade) => {
         switch (grade) {
-            case 'A': return 'bg-green-500';
-            case 'B': return 'bg-blue-500';
-            case 'C': return 'bg-yellow-500';
-            case 'D': return 'bg-orange-500';
-            case 'F': return 'bg-red-500';
-            default: return 'bg-gray-500';
+            case 'A': return 'bg-green-600';
+            case 'B': return 'bg-blue-600';
+            case 'C': return 'bg-yellow-600';
+            case 'D': return 'bg-orange-600';
+            case 'F': return 'bg-red-600';
+            default: return 'bg-gray-600';
         }
     };
 
@@ -225,16 +242,13 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                             <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Student Details
                             </h1>
-                            <p className="text-gray-400 mt-2">View and manage student information</p>
+                            <p className="text-gray-400">View and manage student information</p>
                         </div>
                         <div className="flex space-x-3">
                             <button
                                 onClick={() => router.visit('/admin/students')}
-                                className="bg-gray-800 hover:bg-gray-700 text-white py-2 px-6 rounded-lg transition-all duration-300 flex items-center"
+                                className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition-all"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                                </svg>
                                 Back to Students
                             </button>
                         </div>
@@ -242,22 +256,45 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
 
                     {/* Student Information Card */}
                     <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8 border border-gray-700">
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
-                            <div className="flex items-center space-x-6">
-                                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-2xl font-bold text-white">
-                                    {student.first_name.charAt(0)}{student.last_name.charAt(0)}
-                                </div>
-                                <div>
-                                    <h2 className="text-3xl font-bold text-white mb-1">
-                                        {student.first_name} {student.last_name}
-                                    </h2>
-                                    <div className="flex items-center space-x-2">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${student.status === 'banned' ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}`}>
+                        <div className="flex justify-between items-start mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-yellow-500 mb-2">
+                                    {student.first_name} {student.last_name}
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+                                    <div>
+                                        <p className="text-sm text-gray-400">Email</p>
+                                        <p className="font-medium">{student.email}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Phone</p>
+                                        <p className="font-medium">{student.phone_number || 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Date of Birth</p>
+                                        <p className="font-medium">{student.dob ? moment(student.dob).format('MMMM D, YYYY') : 'Not provided'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Status</p>
+                                        <span className={`px-3 py-1 rounded-full ${student.status === 'banned' ? "bg-red-500" : "bg-green-500"} text-white`}>
                                             {student.status === 'banned' ? "Banned" : "Active"}
                                         </span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${student.payment_status === 'completed' ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-                                            {student.payment_status === 'completed' ? "Payment Completed" : "Payment Pending"}
-                                        </span>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Payment Status</p>
+                                        <div className="flex items-center space-x-2">
+                                            <span className={`px-3 py-1 rounded-full ${student.payment_status === 'completed' ? "bg-green-500" : "bg-yellow-500"} text-white`}>
+                                                {student.payment_status === 'completed' ? "Completed" : "Pending"}
+                                            </span>
+                                            <select
+                                                value={student.payment_status}
+                                                onChange={(e) => handleUpdatePaymentStatus(e.target.value)}
+                                                className="bg-gray-700 text-gray-200 rounded p-1 text-sm"
+                                            >
+                                                <option value="pending">Pending</option>
+                                                <option value="completed">Completed</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -265,52 +302,18 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                                 {student.status === 'active' ? (
                                     <button
                                         onClick={handleBanStudent}
-                                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-all duration-300 flex items-center"
+                                        className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-all"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                        </svg>
                                         Ban Student
                                     </button>
                                 ) : (
                                     <button
                                         onClick={handleUnbanStudent}
-                                        className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition-all duration-300 flex items-center"
+                                        className="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-all"
                                     >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                        </svg>
                                         Unban Student
                                     </button>
                                 )}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-                            <div className="bg-gray-700/50 p-4 rounded-xl">
-                                <p className="text-gray-400 text-sm">Email</p>
-                                <p className="font-medium text-white mt-1">{student.email}</p>
-                            </div>
-                            <div className="bg-gray-700/50 p-4 rounded-xl">
-                                <p className="text-gray-400 text-sm">Phone</p>
-                                <p className="font-medium text-white mt-1">{student.phone_number || 'Not provided'}</p>
-                            </div>
-                            <div className="bg-gray-700/50 p-4 rounded-xl">
-                                <p className="text-gray-400 text-sm">Date of Birth</p>
-                                <p className="font-medium text-white mt-1">{student.dob ? moment(student.dob).format('MMMM D, YYYY') : 'Not provided'}</p>
-                            </div>
-                            <div className="bg-gray-700/50 p-4 rounded-xl">
-                                <p className="text-gray-400 text-sm">Payment Status</p>
-                                <div className="flex items-center mt-1">
-                                    <select
-                                        value={student.payment_status}
-                                        onChange={(e) => handleUpdatePaymentStatus(e.target.value)}
-                                        className="bg-gray-600 text-white rounded p-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                    >
-                                        <option value="pending">Pending</option>
-                                        <option value="completed">Completed</option>
-                                    </select>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -318,13 +321,11 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                     {/* Courses Section */}
                     <div className="mb-8">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                                Enrolled Courses
-                            </h2>
+                            <h2 className="text-2xl font-bold text-yellow-500">Enrolled Courses</h2>
                             <div className="relative">
                                 <select
                                     onChange={(e) => e.target.value && handleEnrollInCourse(parseInt(e.target.value))}
-                                    className="bg-gray-800 text-white rounded-lg py-3 pl-12 pr-4 appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500 w-64"
+                                    className="bg-gray-800 text-gray-200 rounded-lg py-2 pl-10 pr-4 appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500"
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Enroll in Course</option>
@@ -334,7 +335,7 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                                         </option>
                                     ))}
                                 </select>
-                                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                     </svg>
@@ -343,24 +344,21 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                         </div>
 
                         {studentCourses.length === 0 ? (
-                            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 text-center border border-gray-700">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mx-auto text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                                </svg>
-                                <p className="text-gray-400 text-lg">This student is not enrolled in any courses yet.</p>
+                            <div className="bg-gray-800/50 backdrop-blur-sm p-8 rounded-xl text-center">
+                                <p className="text-gray-400">This student is not enrolled in any courses yet.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {studentCourses.map((courseStudent) => (
-                                    <div key={courseStudent.id} className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700 overflow-hidden">
+                                    <div key={courseStudent.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all border border-gray-700">
                                         <div className="p-6">
                                             <div className="flex justify-between items-start mb-4">
-                                                <h3 className="text-xl font-bold text-white">
-                                                    {courseStudent.course?.name || 'Unknown Course'}
+                                                <h3 className="text-xl font-bold text-yellow-500">
+                                                    {getCourseName(courseStudent.id)}
                                                 </h3>
                                                 <button
                                                     onClick={() => handleEditCourse(courseStudent)}
-                                                    className="bg-yellow-600 hover:bg-yellow-700 text-white p-2 rounded-lg transition-all duration-300"
+                                                    className="bg-yellow-600 text-white p-2 rounded-lg hover:bg-yellow-700 transition-all"
                                                     title="Edit Scores"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -369,28 +367,24 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-4">
+                                            <div className="space-y-3 text-gray-300">
                                                 <div>
                                                     <p className="text-sm text-gray-400">Instructor</p>
-                                                    <p className="font-medium text-white">{courseStudent.course?.instructor || 'Not specified'}</p>
+                                                    <p>{courseStudent.course?.instructor || 'Not specified'}</p>
                                                 </div>
-
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm text-gray-400">Grade</p>
-                                                        <span className={`px-3 py-1 rounded-full text-xs font-medium text-white ${getGradeColor(courseStudent.grade)}`}>
-                                                            {courseStudent.grade || 'Not graded'}
-                                                        </span>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-sm text-gray-400">Total Score</p>
-                                                        <p className="font-bold text-xl text-white">{courseStudent.total_score || 0}%</p>
-                                                    </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-400">Grade</p>
+                                                    <span className={`px-3 py-1 rounded-full text-white ${getGradeColor(courseStudent.grade)}`}>
+                                                        {courseStudent.grade || 'Not graded'}
+                                                    </span>
                                                 </div>
-
-                                                <div className="pt-2 border-t border-gray-700">
+                                                <div>
+                                                    <p className="text-sm text-gray-400">Total Score</p>
+                                                    <p>{courseStudent.total_score || 0}%</p>
+                                                </div>
+                                                <div>
                                                     <p className="text-sm text-gray-400">Enrollment Date</p>
-                                                    <p className="font-medium text-white">{moment(courseStudent.created_at).format('MMMM D, YYYY')}</p>
+                                                    <p>{moment(courseStudent.created_at).format('MMMM D, YYYY')}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -402,94 +396,72 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
 
                     {/* Edit Course Scores Modal */}
                     {isEditing && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                             <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
-                                <h3 className="text-2xl font-bold text-white mb-6">
+                                <h3 className="text-2xl font-semibold text-yellow-500 mb-6">
                                     Edit Course Scores
                                 </h3>
                                 <form onSubmit={handleUpdateScores}>
-                                    <div className="mb-6">
+                                    <div className="mb-4">
                                         <label className="block text-gray-400 mb-2">Course</label>
-                                        <p className="font-medium text-lg text-yellow-500">{selectedCourse.course?.name || 'Unknown Course'}</p>
+                                        <p className="font-medium">{getCourseName(selectedCourse.course_id)}</p>
                                     </div>
 
-                                    <div className="space-y-4 mb-6">
-                                        <div>
-                                            <label className="block text-gray-400 mb-2">Weekly Quizzes Score (max: 130)</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="130"
-                                                    value={courseScores.weekly_quizzes_score}
-                                                    onChange={(e) => handleScoreChange('weekly_quizzes_score', e.target.value)}
-                                                    className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                                />
-                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    /130
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-400 mb-2">Exercises Score (max: 50)</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="50"
-                                                    value={courseScores.exercises_score}
-                                                    onChange={(e) => handleScoreChange('exercises_score', e.target.value)}
-                                                    className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                                />
-                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    /50
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-400 mb-2">Final Project Score (max: 25)</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="25"
-                                                    value={courseScores.final_project_score}
-                                                    onChange={(e) => handleScoreChange('final_project_score', e.target.value)}
-                                                    className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                                />
-                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    /25
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-gray-400 mb-2">Participation Score (max: 10)</label>
-                                            <div className="relative">
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    max="10"
-                                                    value={courseScores.participation_score}
-                                                    onChange={(e) => handleScoreChange('participation_score', e.target.value)}
-                                                    className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-                                                />
-                                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                                                    /10
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div className="mb-4">
+                                        <label className="block text-gray-400 mb-2">Weekly Quizzes Score (max: 130)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="130"
+                                            value={courseScores.weekly_quizzes_score}
+                                            onChange={(e) => handleScoreChange('weekly_quizzes_score', e.target.value)}
+                                            className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                        />
                                     </div>
 
-                                    <div className="mb-6">
-                                        <label className="block text-gray-400 mb-2">Total Score & Grade</label>
-                                        <div className="flex items-center justify-between bg-gray-700 rounded-lg p-4">
-                                            <div className="text-2xl font-bold text-white">
+                                    <div className="mb-4">
+                                        <label className="block text-gray-400 mb-2">Exercises Score (max: 50)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="50"
+                                            value={courseScores.exercises_score}
+                                            onChange={(e) => handleScoreChange('exercises_score', e.target.value)}
+                                            className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="block text-gray-400 mb-2">Final Project Score (max: 25)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="25"
+                                            value={courseScores.final_project_score}
+                                            onChange={(e) => handleScoreChange('final_project_score', e.target.value)}
+                                            className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="block text-gray-400 mb-2">Participation Score (max: 10)</label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="10"
+                                            value={courseScores.participation_score}
+                                            onChange={(e) => handleScoreChange('participation_score', e.target.value)}
+                                            className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                        />
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="block text-gray-400 mb-2">Total Score</label>
+                                        <div className="flex items-center space-x-3">
+                                            <div className="flex-1 bg-gray-700 p-3 rounded-lg">
                                                 {courseScores.total_score}%
                                             </div>
-                                            <span className={`px-4 py-2 rounded-full text-lg font-bold text-white ${getGradeColor(courseScores.grade)}`}>
+                                            <span className={`px-3 py-1 rounded-full text-white ${getGradeColor(courseScores.grade)}`}>
                                                 {courseScores.grade || 'Not graded'}
                                             </span>
                                         </div>
@@ -499,14 +471,14 @@ const StudentDetails = ({ student, courses, studentCourses }) => {
                                         <button
                                             type="button"
                                             onClick={() => setIsEditing(false)}
-                                            className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
+                                            className="bg-gray-700 text-white py-2 px-4 rounded-lg"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
+                                            className="bg-yellow-600 text-black py-2 px-4 rounded-lg hover:bg-yellow-700 disabled:opacity-10"
                                         >
                                             {loading ? "Processing..." : "Update Scores"}
                                         </button>
