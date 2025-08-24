@@ -9,10 +9,10 @@ use Inertia\Inertia;
 
 class CourseController extends Controller
 {
-    // Get all courses
+    // Get all courses with student count
     public function index()
     {
-        $courses = Course::all();
+        $courses = Course::withCount('students')->get();
         return Inertia::render('Admin/Courses', ['courses' => $courses]);
     }
 

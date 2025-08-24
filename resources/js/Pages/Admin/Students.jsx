@@ -5,7 +5,7 @@ import AdminSidebar from "@/Components/AdminSidebar";
 import axios from "axios";
 import moment from "moment";
 
-const Students = ({ students, courses }) => {
+const Students = ({ students, courses, studentCourses }) => {
     const [studentsList, setStudentsList] = useState(students || []);
     const [filteredStudents, setFilteredStudents] = useState(students || []);
     const [loading, setLoading] = useState(false);
@@ -32,16 +32,29 @@ const Students = ({ students, courses }) => {
         setPaymentStatus(initialPaymentStatus);
     }, [students]);
 
+    // Helper function to get course name by student ID
+    const getCourseNameByStudentId = (studentId) => {
+        // Find the student's course enrollment in the studentCourses array
+        const studentCourse = studentCourses.find(sc => sc.student_id === studentId);
+        
+        if (!studentCourse) return 'No course assigned';
+        
+        // Find the course in the courses array using the course_id from studentCourse
+        const course = courses.find(c => c.id === studentCourse.course_id);
+        return course ? course.name : 'Unknown course';
+    };
+
     const handleSearch = (e) => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
 
         const filtered = studentsList.filter((student) => {
+            const courseName = getCourseNameByStudentId(student.id);
             return (
                 student.first_name.toLowerCase().includes(value) ||
                 student.last_name.toLowerCase().includes(value) ||
                 student.email.toLowerCase().includes(value) ||
-                (student.course_name && student.course_name.toLowerCase().includes(value))
+                (courseName && courseName.toLowerCase().includes(value))
             );
         });
         setFilteredStudents(filtered);
@@ -361,7 +374,7 @@ const Students = ({ students, courses }) => {
                                                     {student.email}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {student.course_name || '-'}
+                                                    {getCourseNameByStudentId(student.id)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <select

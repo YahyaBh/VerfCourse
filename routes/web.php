@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
 
     //Student management routes
     Route::post('/api/student/create', [StudentController::class, 'store'])->name('api.student.create');
+    Route::put('/api/student/update/{id}', [StudentController::class, 'update'])->name('api.student.update');
     Route::post('/api/student/enroll', [StudentController::class, 'enrollStudentInCourse']);
     Route::put('/api/student/grade/{studentCourseId}', [StudentController::class, 'updateGrades']);
     Route::delete('/api/student/{studentId}', [StudentController::class, 'destroy']); // Delete student
@@ -99,6 +100,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/course/update/{id}', [CourseController::class, 'update'])->name('api.course.update');
     Route::delete('/course/{id}', [CourseController::class, 'destroy'])->name('api.course.delete');
     Route::put('/course/toggle-active/{id}', [CourseController::class, 'toggleActive'])->name('api.course.toggle-active');
+
 });
 
 

@@ -16,11 +16,13 @@ class Student extends Model
         'dob',
         'phone_number',
         'status',
-        'payment_status',
+        'payment_status'
     ];
 
     protected $casts = [
         'dob' => 'date',
+        'status' => 'string',
+        'payment_status' => 'string',
     ];
 
     public function courses()

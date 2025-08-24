@@ -20,7 +20,22 @@ class CertificateController extends Controller
 
     public function dashboard()
     {
-        return Inertia::render('Admin/AdminDashboard');
+
+
+        $certificates = Certificate::all();
+        $students = Student::all();
+        $courses = Course::all();
+        $stats = [
+            'totalCertificates' => $certificates->count(),
+            'totalStudents' => $students->count(),
+        ];
+
+        return Inertia::render('Admin/AdminDashboard', [
+            'certificates' => $certificates,
+            'students' => $students,
+            'courses' => $courses,
+            'stats' => $stats
+        ]);
     }
 
 
@@ -37,16 +52,6 @@ class CertificateController extends Controller
         ]);
     }
 
-
-
-
-    public function getStats()
-    {
-        $totalCertificates = Certificate::count();  // Simple count query to test if this works
-        $totalStudents = Student::count();
-
-        return response()->json(['totalCertificates' => $totalCertificates, 'totalStudents' => $totalStudents]);
-    }
 
 
 

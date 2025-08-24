@@ -4,22 +4,39 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Course;
-use App\Models\StudentCourse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
 
 class StudentController extends Controller
 {
-    // Get all students with their courses
+    // Get all students with their course information
     public function index()
     {
-        $students = Student::with('courses')->get();
+        $students = Student::all();
         $courses = Course::all();
+
+        // Get all student-course relationships
+        $studentCourses = \DB::table('course_student')->get();
 
         return Inertia::render('Admin/Students', [
             'students' => $students,
-            'courses' => $courses
+            'courses' => $courses,
+            'studentCourses' => $studentCourses
+        ]);
+    }
+
+    // Get a specific student with their course information
+    public function show($id)
+    {
+        $student = Student::findOrFail($id);
+        $courses = Course::all();
+        $studentCourses = $student->courses()->withPivot(['weekly_quizzes_score', 'exercises_score', 'final_project_score', 'participation_score', 'total_score', 'grade'])->get();
+
+        return Inertia::render('Admin/StudentDetails', [
+            'student' => $student,
+            'courses' => $courses,
+            'studentCourses' => $studentCourses
         ]);
     }
 
@@ -29,10 +46,9 @@ class StudentController extends Controller
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'email' => 'required|email|unique:students,email',
-            'dob' => 'nullable|date',
-            'phone_number' => 'nullable|string|max:20',
+            'email' => 'required|email|unique:students',
             'status' => 'required|in:active,banned',
+            'course_id' => 'nullable|exists:courses,id',
             'payment_status' => 'required|in:pending,completed',
         ]);
 
@@ -40,52 +56,58 @@ class StudentController extends Controller
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'dob' => $request->dob,
-            'phone_number' => $request->phone_number,
             'status' => $request->status,
             'payment_status' => $request->payment_status,
         ]);
 
-        // If course_id is provided, enroll the student in the course
-        if ($request->has('course_id') && $request->course_id) {
-            $this->enrollStudentInCourse($request->merge(['student_id' => $student->id]));
+        // If a course_id is provided, enroll the student in the course
+        if ($request->course_id) {
+            $student->courses()->attach($request->course_id);
         }
 
         return response()->json([
             'message' => 'Student created successfully',
             'student' => $student
-        ], Response::HTTP_CREATED);
+        ]);
     }
 
     // Update a student
     public function update(Request $request, $id)
     {
-        $student = Student::findOrFail($id);
-
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:students,email,' . $id,
-            'dob' => 'nullable|date',
-            'phone_number' => 'nullable|string|max:20',
             'status' => 'required|in:active,banned',
+            'course_id' => 'nullable|exists:courses,id',
             'payment_status' => 'required|in:pending,completed',
         ]);
+
+        $student = Student::findOrFail($id);
 
         $student->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'email' => $request->email,
-            'dob' => $request->dob,
-            'phone_number' => $request->phone_number,
             'status' => $request->status,
             'payment_status' => $request->payment_status,
         ]);
 
+        // Update course enrollment if course_id is provided
+        if ($request->course_id) {
+            // Detach from all courses first
+            $student->courses()->detach();
+            // Attach to the new course
+            $student->courses()->attach($request->course_id);
+        } else {
+            // If no course_id is provided, detach from all courses
+            $student->courses()->detach();
+        }
+
         return response()->json([
             'message' => 'Student updated successfully',
             'student' => $student
-        ], Response::HTTP_OK);
+        ]);
     }
 
     // Delete a student
@@ -93,54 +115,36 @@ class StudentController extends Controller
     {
         $student = Student::findOrFail($id);
 
-        // Remove all course enrollments for this student
-        StudentCourse::where('student_id', $id)->delete();
+        // Detach from all courses before deleting
+        $student->courses()->detach();
 
         $student->delete();
 
         return response()->json([
             'message' => 'Student deleted successfully'
-        ], Response::HTTP_OK);
-    }
-
-    public function show($id)
-    {
-        $student = Student::findOrFail($id);
-        $courses = Course::all();
-        $studentCourses = $student->courses()->withPivot(['weekly_quizzes_score', 'exercises_score', 'final_project_score', 'participation_score', 'total_score', 'grade'])->get();
-
-        return Inertia::render('Admin/Student', [
-            'student' => $student,
-            'courses' => $courses,
-            'studentCourses' => $studentCourses
         ]);
     }
-
 
     // Ban a student
     public function ban($id)
     {
         $student = Student::findOrFail($id);
-        $student->status = 'banned';
-        $student->save();
+        $student->update(['status' => 'banned']);
 
         return response()->json([
-            'message' => 'Student banned successfully',
-            'student' => $student
-        ], Response::HTTP_OK);
+            'message' => 'Student banned successfully'
+        ]);
     }
 
     // Unban a student
     public function unban($id)
     {
         $student = Student::findOrFail($id);
-        $student->status = 'active';
-        $student->save();
+        $student->update(['status' => 'active']);
 
         return response()->json([
-            'message' => 'Student unbanned successfully',
-            'student' => $student
-        ], Response::HTTP_OK);
+            'message' => 'Student unbanned successfully'
+        ]);
     }
 
     // Update payment status
@@ -151,13 +155,31 @@ class StudentController extends Controller
         ]);
 
         $student = Student::findOrFail($id);
-        $student->payment_status = $request->status;
-        $student->save();
+        $student->update(['payment_status' => $request->status]);
 
         return response()->json([
-            'message' => 'Payment status updated successfully',
-            'student' => $student
-        ], Response::HTTP_OK);
+            'message' => 'Payment status updated successfully'
+        ]);
+    }
+
+    // Change student's course
+    public function changeCourse(Request $request, $id)
+    {
+        $request->validate([
+            'course_id' => 'required|exists:courses,id',
+        ]);
+
+        $student = Student::findOrFail($id);
+
+        // Detach from all courses first
+        $student->courses()->detach();
+
+        // Attach to the new course
+        $student->courses()->attach($request->course_id);
+
+        return response()->json([
+            'message' => 'Student course changed successfully'
+        ]);
     }
 
     // Enroll student in a course
@@ -168,96 +190,20 @@ class StudentController extends Controller
             'course_id' => 'required|exists:courses,id',
         ]);
 
-        // Check if the student is already enrolled in this course
-        $existingEnrollment = StudentCourse::where('student_id', $request->student_id)
-            ->where('course_id', $request->course_id)
-            ->first();
+        $student = Student::findOrFail($request->student_id);
 
-        if ($existingEnrollment) {
+        // Check if student is already enrolled in the course
+        if ($student->courses()->where('course_id', $request->course_id)->exists()) {
             return response()->json([
                 'message' => 'Student is already enrolled in this course'
-            ], Response::HTTP_CONFLICT);
+            ], 400);
         }
 
-        $studentCourse = StudentCourse::create([
-            'student_id' => $request->student_id,
-            'course_id' => $request->course_id,
-            'weekly_quizzes_score' => 0,
-            'exercises_score' => 0,
-            'final_project_score' => 0,
-            'participation_score' => 0,
-            'total_score' => 0,
-            'grade' => null,
-        ]);
+        // Enroll the student in the course
+        $student->courses()->attach($request->course_id);
 
         return response()->json([
-            'message' => 'Student enrolled successfully in the course',
-            'student_course' => $studentCourse
-        ], Response::HTTP_OK);
-    }
-
-    // Update student grades
-    public function updateGrades(Request $request, $studentCourseId)
-    {
-        $request->validate([
-            'weekly_quizzes_score' => 'required|numeric|min:0',
-            'exercises_score' => 'required|numeric|min:0',
-            'final_project_score' => 'required|numeric|min:0',
-            'participation_score' => 'required|numeric|min:0',
+            'message' => 'Student enrolled in course successfully'
         ]);
-
-        $studentCourse = StudentCourse::findOrFail($studentCourseId);
-
-        $studentCourse->weekly_quizzes_score = $request->weekly_quizzes_score;
-        $studentCourse->exercises_score = $request->exercises_score;
-        $studentCourse->final_project_score = $request->final_project_score;
-        $studentCourse->participation_score = $request->participation_score;
-
-        $totalScore = $this->calculateTotalScore($studentCourse);
-        $studentCourse->total_score = $totalScore;
-        $studentCourse->grade = $this->assignGrade($totalScore);
-
-        $studentCourse->save();
-
-        return response()->json([
-            'message' => 'Grades updated successfully',
-            'student_course' => $studentCourse,
-        ], Response::HTTP_OK);
-    }
-
-    // Calculate the total score for the student
-    private function calculateTotalScore($studentCourse)
-    {
-        $totalScore = 0;
-
-        // Weekly Quizzes: 40% of the total
-        $totalScore += ($studentCourse->weekly_quizzes_score / 130) * 0.4 * 100;
-
-        // Exercises & Assignments: 20% of the total
-        $totalScore += ($studentCourse->exercises_score / 50) * 0.2 * 100;
-
-        // Final Project: 30% of the total
-        $totalScore += ($studentCourse->final_project_score / 25) * 0.3 * 100;
-
-        // Participation & Attendance: 10% of the total
-        $totalScore += ($studentCourse->participation_score / 10) * 0.1 * 100;
-
-        return $totalScore;
-    }
-
-    // Assign letter grade based on total score
-    private function assignGrade($totalScore)
-    {
-        if ($totalScore >= 90) {
-            return 'A';
-        } elseif ($totalScore >= 80) {
-            return 'B';
-        } elseif ($totalScore >= 70) {
-            return 'C';
-        } elseif ($totalScore >= 60) {
-            return 'D';
-        } else {
-            return 'F';
-        }
     }
 }

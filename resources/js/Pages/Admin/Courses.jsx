@@ -5,9 +5,9 @@ import AdminSidebar from "@/Components/AdminSidebar";
 import axios from "axios";
 import moment from "moment";
 
-const Courses = ({ courses }) => {
-    const [coursesList, setCoursesList] = useState(courses || []);
-    const [filteredCourses, setFilteredCourses] = useState(courses || []);
+const Courses = ({ courses: initialCourses = [], students = [] }) => {
+    const [courses, setCourses] = useState(initialCourses);
+    const [filteredCourses, setFilteredCourses] = useState(initialCourses);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditing, setIsEditing] = useState(false);
@@ -22,15 +22,19 @@ const Courses = ({ courses }) => {
     });
     const [selectedCourse, setSelectedCourse] = useState(null);
 
+    useEffect(() => {
+        setFilteredCourses(courses);
+    }, [courses]);
+
     const handleSearch = (e) => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
 
-        const filtered = coursesList.filter((course) => {
+        const filtered = courses.filter((course) => {
             return (
                 course.name.toLowerCase().includes(value) ||
-                (course.instructor && course.instructor.toLowerCase().includes(value)) ||
-                (course.description && course.description.toLowerCase().includes(value))
+                course.description.toLowerCase().includes(value) ||
+                course.instructor.toLowerCase().includes(value)
             );
         });
         setFilteredCourses(filtered);
@@ -53,15 +57,21 @@ const Courses = ({ courses }) => {
         setLoading(true);
 
         try {
-            const response = await axios.post("/course/create", newCourse);
+            const response = await axios.post("/api/course/store", newCourse);
 
             if (response.status === 201) {
                 toast.success("Course created successfully!");
                 setIsAdding(false);
-                // Add the new course to the list
-                const createdCourse = response.data.course;
-                setCoursesList([...coursesList, createdCourse]);
-                setFilteredCourses([...filteredCourses, createdCourse]);
+                setNewCourse({
+                    name: "",
+                    description: "",
+                    price: 0.00,
+                    duration: "",
+                    instructor: "",
+                    is_active: true,
+                });
+                // Refresh courses from server
+                router.reload();
             } else {
                 toast.error("Error creating course.");
             }
@@ -91,23 +101,22 @@ const Courses = ({ courses }) => {
         setLoading(true);
 
         try {
-            const response = await axios.post(`/course/update/${selectedCourse.id}`, newCourse);
+            const response = await axios.put(`/api/course/update/${selectedCourse.id}`, newCourse);
 
             if (response.status === 200) {
                 toast.success("Course updated successfully!");
                 setIsEditing(false);
                 setSelectedCourse(null);
-                // Update the course in the list
-                setCoursesList(
-                    coursesList.map((course) =>
-                        course.id === selectedCourse.id ? { ...course, ...newCourse } : course
-                    )
-                );
-                setFilteredCourses(
-                    filteredCourses.map((course) =>
-                        course.id === selectedCourse.id ? { ...course, ...newCourse } : course
-                    )
-                );
+                setNewCourse({
+                    name: "",
+                    description: "",
+                    price: 0.00,
+                    duration: "",
+                    instructor: "",
+                    is_active: true,
+                });
+                // Refresh courses from server
+                router.reload();
             } else {
                 toast.error("Error updating course.");
             }
@@ -119,15 +128,15 @@ const Courses = ({ courses }) => {
         }
     };
 
-    const handleDelete = async (courseId) => {
+    const handleDelete = async (id) => {
         if (!window.confirm("Are you sure you want to delete this course?")) return;
 
         setLoading(true);
         try {
-            await axios.delete(`/course/${courseId}`);
+            await axios.delete(`/api/course/${id}`);
             toast.success("Course deleted successfully");
-            setCoursesList(coursesList.filter((course) => course.id !== courseId));
-            setFilteredCourses(filteredCourses.filter((course) => course.id !== courseId));
+            setCourses(courses.filter((course) => course.id !== id));
+            setFilteredCourses(filteredCourses.filter((course) => course.id !== id));
         } catch (error) {
             toast.error("Error deleting course");
         } finally {
@@ -135,220 +144,311 @@ const Courses = ({ courses }) => {
         }
     };
 
-    const handleToggleActive = async (courseId) => {
+    const handleToggleActive = async (id) => {
         setLoading(true);
         try {
-            const course = coursesList.find(c => c.id === courseId);
-            const newStatus = !course.is_active;
-
-            await axios.put(`/course/toggle-active/${courseId}`, {
-                is_active: newStatus
+            const course = courses.find(c => c.id === id);
+            const response = await axios.put(`/api/course/toggle-active/${id}`, {
+                is_active: !course.is_active
             });
 
-            toast.success(`Course ${newStatus ? 'activated' : 'deactivated'} successfully`);
-
-            setCoursesList(
-                coursesList.map((course) =>
-                    course.id === courseId ? { ...course, is_active: newStatus } : course
-                )
-            );
-            setFilteredCourses(
-                filteredCourses.map((course) =>
-                    course.id === courseId ? { ...course, is_active: newStatus } : course
-                )
-            );
+            if (response.status === 200) {
+                toast.success(`Course ${!course.is_active ? 'activated' : 'deactivated'} successfully!`);
+                setCourses(
+                    courses.map((course) =>
+                        course.id === id ? { ...course, is_active: !course.is_active } : course
+                    )
+                );
+                setFilteredCourses(
+                    filteredCourses.map((course) =>
+                        course.id === id ? { ...course, is_active: !course.is_active } : course
+                    )
+                );
+            } else {
+                toast.error("Error updating course status.");
+            }
         } catch (error) {
-            toast.error("Error updating course status");
+            toast.error("Error updating course status.");
         } finally {
             setLoading(false);
         }
     };
 
+    // Get status color
+    const getStatusColor = (isActive) => {
+        return isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400';
+    };
+
     return (
         <>
             <Head title="Admin Courses" />
-            <div className="flex min-h-screen bg-[#2d2d2d] text-white">
+            <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
                 {/* Sidebar */}
                 <AdminSidebar activeItem="Courses" />
 
                 {/* Main content area */}
                 <main className="flex-1 overflow-y-auto p-6">
                     {/* Top bar */}
-                    <div className="flex justify-between mb-8">
+                    <div className="flex justify-between items-center mb-8">
                         <div>
-                            <h1 className="text-3xl font-extrabold text-[#FFE662]">Manage Courses</h1>
-                            <p className="text-gray-400">Manage and view all your courses</p>
+                            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                                Manage Courses
+                            </h1>
+                            <p className="text-gray-400 mt-2">Manage and view all your courses</p>
                         </div>
                         <button
                             onClick={handleAdd}
-                            className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all"
+                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center"
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
                             Add New Course
                         </button>
                     </div>
 
                     {/* Search bar */}
-                    <div className="mb-6">
-                        <input
-                            type="text"
-                            placeholder="Search courses..."
-                            value={searchTerm}
-                            onChange={handleSearch}
-                            className="p-3 w-full bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#FFE662]"
-                        />
+                    <div className="mb-8">
+                        <div className="relative max-w-md">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search courses..."
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                            />
+                        </div>
                     </div>
 
                     {/* Courses Table */}
                     {loading ? (
-                        <p>Loading courses...</p>
+                        <div className="flex justify-center items-center h-64">
+                            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
+                        </div>
                     ) : (
-                        <table className="min-w-full text-left text-gray-300">
-                            <thead className="border-b border-gray-600">
-                                <tr>
-                                    <th className="py-3 px-4">Course ID</th>
-                                    <th className="py-3 px-4">Name</th>
-                                    <th className="py-3 px-4">Instructor</th>
-                                    <th className="py-3 px-4">Price</th>
-                                    <th className="py-3 px-4">Duration</th>
-                                    <th className="py-3 px-4">Status</th>
-                                    <th className="py-3 px-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredCourses.map((course) => (
-                                    <tr key={course.id} className="border-b border-gray-600 hover:bg-[#444]">
-                                        <td className="py-3 px-4">{course.id}</td>
-                                        <td className="py-3 px-4">{course.name}</td>
-                                        <td className="py-3 px-4">{course.instructor || '-'}</td>
-                                        <td className="py-3 px-4">{parseFloat(course.price || 0).toFixed(2)} MAD</td>
-                                        <td className="py-3 px-4">{course.duration || '-'}</td>
-                                        <td className="py-3 px-4">
-                                            <span
-                                                className={`px-3 py-1 rounded-full ${course.is_active ? "bg-green-500" : "bg-red-500"} text-white`}
-                                            >
-                                                {course.is_active ? "Active" : "Inactive"}
-                                            </span>
-                                        </td>
-                                        <td className="py-3 px-4 flex space-x-3">
-                                            <button
-                                                onClick={() => handleEdit(course)}
-                                                className="bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700 transition-all"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleToggleActive(course.id)}
-                                                className={`${course.is_active ? "bg-red-600" : "bg-green-600"} text-white py-2 px-4 rounded-lg hover:opacity-80 transition-all`}
-                                            >
-                                                {course.is_active ? "Deactivate" : "Activate"}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(course.id)}
-                                                className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-all"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredCourses.length === 0 && (
-                                    <tr>
-                                        <td colSpan="7" className="py-4 text-center text-gray-400">
-                                            No courses found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl overflow-hidden border border-gray-700">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-700">
+                                    <thead className="bg-gray-800/50">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Course Name
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Instructor
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Duration
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Price
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Students
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Status
+                                            </th>
+                                            <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                Actions
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-700">
+                                        {filteredCourses.map((course) => (
+                                            <tr key={course.id} className="hover:bg-gray-800/30 transition-colors duration-200">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex items-center">
+                                                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
+                                                            {course.name.charAt(0)}
+                                                        </div>
+                                                        <div className="ml-4">
+                                                            <div className="text-sm font-medium text-white">
+                                                                {course.name}
+                                                            </div>
+                                                            <div className="text-sm text-gray-400">
+                                                                {course.description ? course.description.substring(0, 50) + (course.description.length > 50 ? '...' : '') : 'No description'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {course.instructor || 'Not assigned'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {course.duration || 'Not specified'}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {parseFloat(course.price).toFixed(2)} MAD
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                    {course.students_count || 0}
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(course.is_active)}`}>
+                                                        {course.is_active ? "Active" : "Inactive"}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                    <div className="flex justify-end space-x-2">
+                                                        <button
+                                                            onClick={() => handleEdit(course)}
+                                                            className="text-yellow-500 hover:text-yellow-400 transition-colors duration-200"
+                                                            title="Edit"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleToggleActive(course.id)}
+                                                            className={`${course.is_active ? "text-red-500 hover:text-red-400" : "text-green-500 hover:text-green-400"} transition-colors duration-200`}
+                                                            title={course.is_active ? "Deactivate" : "Activate"}
+                                                        >
+                                                            {course.is_active ? (
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m-12.728 12.728L5.636 5.636" />
+                                                                </svg>
+                                                            ) : (
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                                                </svg>
+                                                            )}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDelete(course.id)}
+                                                            className="text-red-500 hover:text-red-400 transition-colors duration-200"
+                                                            title="Delete"
+                                                        >
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m0 0v6m0-6h6m-6 0H6" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {filteredCourses.length === 0 && (
+                                <div className="text-center py-12">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    <h3 className="mt-2 text-sm font-medium text-gray-400">No courses found</h3>
+                                    <p className="mt-1 text-sm text-gray-500">Try adjusting your search or create a new course.</p>
+                                    <div className="mt-6">
+                                        <button
+                                            onClick={handleAdd}
+                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                            </svg>
+                                            Add New Course
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </main>
             </div>
 
             {/* Modal for Add Course */}
             {isAdding && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-[#333] p-8 rounded-xl w-96">
-                        <h3 className="text-2xl font-semibold text-[#FFE662] mb-6">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
+                        <h3 className="text-2xl font-bold text-white mb-6">
                             Add New Course
                         </h3>
                         <form onSubmit={handleCreate}>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Course Name</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.name}
-                                    onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Description</label>
-                                <textarea
-                                    value={newCourse.description}
-                                    onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    rows="3"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Price ($)</label>
-                                <input
-                                    type="number"
-                                    value={newCourse.price}
-                                    onChange={(e) => setNewCourse({ ...newCourse, price: parseFloat(e.target.value) || 0 })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Duration</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.duration || ""} // Ensure it's never null or undefined
-                                    onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value.toString() })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    placeholder="e.g., 8 weeks, 3 months"
-                                />
-
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Instructor</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.instructor}
-                                    onChange={(e) => setNewCourse({ ...newCourse, instructor: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="flex items-center text-gray-400">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Course Name</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.name}
+                                        onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Description</label>
+                                    <textarea
+                                        value={newCourse.description}
+                                        onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        rows="3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Price</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={newCourse.price}
+                                        onChange={(e) => setNewCourse({ ...newCourse, price: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.duration}
+                                        onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        placeholder="e.g., 8 weeks, 3 months"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Instructor</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.instructor}
+                                        onChange={(e) => setNewCourse({ ...newCourse, instructor: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    />
+                                </div>
+                                <div className="flex items-center">
                                     <input
                                         type="checkbox"
+                                        id="is_active"
                                         checked={newCourse.is_active}
                                         onChange={(e) => setNewCourse({ ...newCourse, is_active: e.target.checked })}
-                                        className="mr-2"
+                                        className="h-4 w-4 text-yellow-500 rounded focus:ring-yellow-500"
                                     />
-                                    Active
-                                </label>
+                                    <label htmlFor="is_active" className="ml-2 text-gray-400">
+                                        Active
+                                    </label>
+                                </div>
                             </div>
 
-                            <div className="flex justify-between">
+                            <div className="flex justify-between mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setIsAdding(false)}
-                                    className="bg-gray-600 text-white py-2 px-4 rounded-lg"
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all disabled:opacity-10"
+                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
                                 >
-                                    {!loading ? "Add Course" : "Processing..."}
+                                    {loading ? "Processing..." : "Add Course"}
                                 </button>
                             </div>
                         </form>
@@ -358,88 +458,91 @@ const Courses = ({ courses }) => {
 
             {/* Modal for Edit Course */}
             {isEditing && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <div className="bg-[#333] p-8 rounded-xl w-96">
-                        <h3 className="text-2xl font-semibold text-[#FFE662] mb-6">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
+                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
+                        <h3 className="text-2xl font-bold text-white mb-6">
                             Edit Course
                         </h3>
                         <form onSubmit={handleUpdate}>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Course Name</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.name}
-                                    onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Description</label>
-                                <textarea
-                                    value={newCourse.description}
-                                    onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    rows="3"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Price ($)</label>
-                                <input
-                                    type="number"
-                                    value={newCourse.price}
-                                    onChange={(e) => setNewCourse({ ...newCourse, price: parseFloat(e.target.value) || 0 })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    min="0"
-                                    step="0.01"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Duration</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.duration}
-                                    onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                    placeholder="e.g., 8 weeks, 3 months"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="block text-gray-400">Instructor</label>
-                                <input
-                                    type="text"
-                                    value={newCourse.instructor}
-                                    onChange={(e) => setNewCourse({ ...newCourse, instructor: e.target.value })}
-                                    className="w-full p-3 bg-[#3a3a3a] rounded-lg text-gray-200 placeholder-gray-400"
-                                />
-                            </div>
-                            <div className="mb-4">
-                                <label className="flex items-center text-gray-400">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Course Name</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.name}
+                                        onChange={(e) => setNewCourse({ ...newCourse, name: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Description</label>
+                                    <textarea
+                                        value={newCourse.description}
+                                        onChange={(e) => setNewCourse({ ...newCourse, description: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        rows="3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Price</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={newCourse.price}
+                                        onChange={(e) => setNewCourse({ ...newCourse, price: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Duration</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.duration}
+                                        onChange={(e) => setNewCourse({ ...newCourse, duration: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        placeholder="e.g., 8 weeks, 3 months"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-gray-400 mb-2">Instructor</label>
+                                    <input
+                                        type="text"
+                                        value={newCourse.instructor}
+                                        onChange={(e) => setNewCourse({ ...newCourse, instructor: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    />
+                                </div>
+                                <div className="flex items-center">
                                     <input
                                         type="checkbox"
+                                        id="is_active"
                                         checked={newCourse.is_active}
                                         onChange={(e) => setNewCourse({ ...newCourse, is_active: e.target.checked })}
-                                        className="mr-2"
+                                        className="h-4 w-4 text-yellow-500 rounded focus:ring-yellow-500"
                                     />
-                                    Active
-                                </label>
+                                    <label htmlFor="is_active" className="ml-2 text-gray-400">
+                                        Active
+                                    </label>
+                                </div>
                             </div>
 
-                            <div className="flex justify-between">
+                            <div className="flex justify-between mt-8">
                                 <button
                                     type="button"
                                     onClick={() => setIsEditing(false)}
-                                    className="bg-gray-600 text-white py-2 px-4 rounded-lg"
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#FFE662] text-black py-2 px-4 rounded-lg hover:bg-[#ffd94c] transition-all disabled:opacity-10"
+                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
                                 >
-                                    {!loading ? "Update Course" : "Processing..."}
+                                    {loading ? "Processing..." : "Update Course"}
                                 </button>
                             </div>
                         </form>
