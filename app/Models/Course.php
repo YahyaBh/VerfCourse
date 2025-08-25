@@ -25,8 +25,11 @@ class Course extends Model
 
     public function students()
     {
-        return $this->belongsToMany(Student::class, 'course_student')
+        return $this->belongsToMany(Student::class, 'student_courses')
             ->withPivot([
+                'enrollment_date',
+                'completion_date',
+                'status',
                 'weekly_quizzes_score',
                 'exercises_score',
                 'final_project_score',
@@ -37,9 +40,29 @@ class Course extends Model
             ->withTimestamps();
     }
 
-
     public function sessions()
     {
         return $this->hasMany(Session::class);
+    }
+
+    public function certificates()
+    {
+        return $this->hasMany(Certificate::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    // Add a method to get the count of enrolled students
+    public function getStudentsCountAttribute()
+    {
+        return $this->students()->count();
     }
 }

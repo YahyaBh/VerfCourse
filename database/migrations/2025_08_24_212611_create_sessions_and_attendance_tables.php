@@ -11,25 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Sessions for a course (like "Day 1", "Day 2")
+        // First, create the sessions table
         Schema::create('course_sessions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('course_id')->constrained()->onDelete('cascade');
             $table->date('session_date');
             $table->string('topic')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('attendance', function (Blueprint $table) {
+        // Then create the attendances table with the correct foreign key
+        Schema::create('attendances', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_session_id')
-                ->constrained('course_sessions')
-                ->cascadeOnDelete();
+            $table->foreignId('session_id')->constrained('course_sessions')->cascadeOnDelete();
             $table->foreignId('student_id')->constrained()->cascadeOnDelete();
             $table->enum('status', ['present', 'absent', 'late'])->default('present');
             $table->timestamps();
 
-            $table->unique(['course_session_id', 'student_id']);
+            // Ensure each student can have only one record per session
+            $table->unique(['session_id', 'student_id']);
         });
     }
 
@@ -38,7 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('attendance');
-        Schema::dropIfExists('sessions');
+        Schema::dropIfExists('attendances');
+        Schema::dropIfExists('course_sessions');
     }
 };

@@ -2,24 +2,43 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Invoice extends Model
 {
-    protected $fillable = ['payment_id', 'invoice_number', 'issued_date'];
+    use HasFactory;
 
-    public function payment()
-    {
-        return $this->belongsTo(Payment::class);
-    }
+    protected $fillable = [
+        'student_id',
+        'course_id',
+        'payment_id',
+        'invoice_number',
+        'amount',
+        'status',
+        'issue_date',
+        'due_date',
+        'notes',
+    ];
+
+    protected $casts = [
+        'issue_date' => 'date',
+        'due_date' => 'date',
+        'amount' => 'decimal:2',
+    ];
 
     public function student()
     {
-        return $this->hasOneThrough(Student::class, Payment::class, 'id', 'id', 'payment_id', 'student_id');
+        return $this->belongsTo(Student::class);
     }
 
     public function course()
     {
-        return $this->hasOneThrough(Course::class, Payment::class, 'id', 'id', 'payment_id', 'course_id');
+        return $this->belongsTo(Course::class);
+    }
+
+    public function payment()
+    {
+        return $this->belongsTo(Payment::class);
     }
 }
