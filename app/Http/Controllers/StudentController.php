@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Course;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Inertia\Inertia;
@@ -154,13 +155,29 @@ class StudentController extends Controller
             'status' => 'required|in:pending,completed',
         ]);
 
+        // Find the student
         $student = Student::findOrFail($id);
+
+        // Update student payment status
         $student->update(['payment_status' => $request->status]);
+
+        // If payment is marked as completed, update the latest payment record
+        if ($request->status == 'completed') {
+            // Get the latest payment for this student (optional: filter by course if needed)
+            $payment = Payment::where('student_id', $student->id)
+                ->latest()
+                ->first();
+
+            if ($payment) {
+                $payment->update(['status' => 'completed']);
+            }
+        }
 
         return response()->json([
             'message' => 'Payment status updated successfully'
         ]);
     }
+
 
     // Change student's course
     public function changeCourse(Request $request, $id)

@@ -32,9 +32,19 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'registration_key' => 'required|string',
+        ], [
+            'registration_key.required' => 'The registration key is required.',
         ]);
+
+        // Validate the registration key against the one in .env
+        if ($request->registration_key !== config('app.registration_key')) {
+            return back()->withErrors([
+                'registration_key' => 'Invalid registration key.',
+            ])->withInput();
+        }
 
         $user = User::create([
             'name' => $request->name,

@@ -15,6 +15,8 @@ return [
     |
     */
 
+    'registration_key' => env('REGISTRATION_KEY', 'default-key-for-development'),
+
     'name' => env('APP_NAME', 'Laravel'),
 
     /*

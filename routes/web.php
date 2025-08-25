@@ -4,7 +4,9 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PageController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\StudentController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -108,6 +110,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/courses/{course}/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('/courses/{course}/attendance/session', [AttendanceController::class, 'storeSession'])->name('attendance.session.store');
     Route::patch('/sessions/{session}/attendance/{attendance}', [AttendanceController::class, 'updateAttendance'])->name('attendance.update');
+
+
+    // List all invoices
+    Route::get('/admin/invoices', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/invoices/{id}/download', [InvoiceController::class, 'downloadPdf'])->name('invoices.download');
+    Route::post('/payments/{paymentId}/generate-invoice', [InvoiceController::class, 'generateInvoiceForPayment'])
+        ->name('invoices.generate');
+
+
+
+    Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
 });
 
 

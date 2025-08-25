@@ -1,7 +1,3 @@
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function Register() {
@@ -10,13 +6,14 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        registration_key: '',
     });
 
     const submit = (e) => {
         e.preventDefault();
 
         post(route('register'), {
-            onFinish: () => reset('password', 'password_confirmation'),
+            onFinish: () => reset('password', 'password_confirmation', 'registration_key'),
         });
     };
 
@@ -167,6 +164,33 @@ export default function Register() {
                                             {errors.password_confirmation}
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Registration Key */}
+                                <div>
+                                    <label
+                                        htmlFor="registration_key"
+                                        className="block text-sm font-medium text-white/70"
+                                    >
+                                        Registration Key
+                                    </label>
+                                    <input
+                                        id="registration_key"
+                                        type="text"
+                                        value={data.registration_key}
+                                        onChange={(e) => setData("registration_key", e.target.value)}
+                                        className="mt-1 block w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/40 focus:border-[#FFE662]/50 focus:ring-0"
+                                        placeholder="Enter the registration key"
+                                        required
+                                    />
+                                    {errors.registration_key && (
+                                        <div className="mt-1 text-sm text-red-400">
+                                            {errors.registration_key}
+                                        </div>
+                                    )}
+                                    <p className="mt-1 text-xs text-white/50">
+                                        This key is required to create an admin account
+                                    </p>
                                 </div>
 
                                 {/* Login link */}
