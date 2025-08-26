@@ -67,7 +67,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::create([
             'payment_id' => $payment->id,
             'invoice_number' => $invoiceNumber,
-            'issued_date' => Carbon::now()->toDateString(),
+            'issued_date' => Carbon::now()->toDateString(), 
         ]);
 
         return response()->json([

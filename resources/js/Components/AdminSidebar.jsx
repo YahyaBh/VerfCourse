@@ -58,12 +58,12 @@ const AdminSidebar = ({ activeItem }) => {
             href: "/admin/payments",
             icon: (
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="2" y="6" width="20" height="14" rx="2" stroke="#eab308" stroke-width="1.5" />
+                    <rect x="2" y="6" width="20" height="14" rx="2" stroke="#eab308" strokeWidth="1.5" />
                     <rect x="2" y="10" width="20" height="3" fill="#eab308" />
                     <rect x="4" y="14" width="3" height="4" rx="0.5" fill="#eab308" />
-                    <path d="M17 13.5C17 14.3284 16.3284 15 15.5 15C14.6716 15 14 14.3284 14 13.5C14 12.6716 14.6716 12 15.5 12C16.3284 12 17 12.6716 17 13.5Z" stroke="#eab308" stroke-width="1.5" />
-                    <path d="M15.5 11V16" stroke="#eab308" stroke-width="1.5" />
-                    <path d="M14 13.5H17" stroke="#eab308" stroke-width="1.5" />
+                    <path d="M17 13.5C17 14.3284 16.3284 15 15.5 15C14.6716 15 14 14.3284 14 13.5C14 12.6716 14.6716 12 15.5 12C16.3284 12 17 12.6716 17 13.5Z" stroke="#eab308" strokeWidth="1.5" />
+                    <path d="M15.5 11V16" stroke="#eab308" strokeWidth="1.5" />
+                    <path d="M14 13.5H17" stroke="#eab308" strokeWidth="1.5" />
                 </svg>
 
             )

@@ -16,13 +16,13 @@ class Invoice extends Model
         'invoice_number',
         'amount',
         'status',
-        'issue_date',
+        'issued_date',
         'due_date',
         'notes',
     ];
 
     protected $casts = [
-        'issue_date' => 'date',
+        'issued_date' => 'date',
         'due_date' => 'date',
         'amount' => 'decimal:2',
     ];

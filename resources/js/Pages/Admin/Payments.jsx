@@ -88,7 +88,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
         e.preventDefault();
         setLoading(true);
 
-        router.post('/payments', form, {
+        router.post('/admin/payment/create', form, {
             onSuccess: (page) => {
                 setPayments(page.props.payments);
                 setFilteredPayments(page.props.payments);
@@ -461,7 +461,10 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-purple-500">${stats.totalRevenue?.toFixed(2)}</div>
+                            <div className="text-3xl font-bold text-purple-500">
+                                ${(Number(stats.totalRevenue) || 0).toFixed(2)}
+                            </div>
+
                         </div>
                     </div>
 

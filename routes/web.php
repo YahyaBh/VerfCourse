@@ -120,8 +120,13 @@ Route::middleware(['auth'])->group(function () {
         ->name('invoices.generate');
 
 
-
+    // Payment Routes
     Route::get('/admin/payments', [PaymentController::class, 'index'])->name('payments.index');
+    Route::post('/admin/payment/create', [PaymentController::class, 'store'])->name('payments.create');
+    Route::get('/payments/stats', [PaymentController::class, 'getStats'])->name('payments.stats');
+    Route::put('/payments/{id}', [PaymentController::class, 'update'])->name('payments.update');
+    Route::delete('/payments/{id}', [PaymentController::class, 'destroy'])->name('payments.delete');
+    Route::post('/payments/{id}/status', [PaymentController::class, 'updateStatus'])->name('payments.status');
 });
 
 

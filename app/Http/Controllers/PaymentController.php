@@ -31,7 +31,7 @@ class PaymentController extends Controller
             'completedPayments' => Payment::where('status', 'completed')->count(),
             'pendingPayments' => Payment::where('status', 'pending')->count(),
             'failedPayments' => Payment::where('status', 'failed')->count(),
-            'totalRevenue' => Payment::where('status', 'completed')->sum('amount'),
+            'totalRevenue' => Payment::where('status', 'completed')->sum('amount') ?? 0,
         ];
 
         return Inertia::render('Admin/Payments', [
