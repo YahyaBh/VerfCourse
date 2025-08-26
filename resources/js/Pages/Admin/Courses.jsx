@@ -59,7 +59,7 @@ const Courses = ({ courses = [] }) => {
         e.preventDefault();
         setLoading(true);
 
-        router.post('/courses', form, {
+        router.post('/course/create', form, {
             onSuccess: (page) => {
                 setFilteredCourses(page.props.courses);
                 setForm({

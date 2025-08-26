@@ -289,121 +289,6 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                         </div>
                     </div>
 
-                    {/* Stats summary */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Total Payments</h3>
-                                <div className="p-2 bg-green-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-green-500">{stats.totalPayments}</div>
-                        </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Completed Payments</h3>
-                                <div className="p-2 bg-blue-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-blue-500">{stats.completedPayments}</div>
-                        </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Pending Payments</h3>
-                                <div className="p-2 bg-yellow-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-yellow-500">{stats.pendingPayments}</div>
-                        </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-sm text-gray-400">Total Revenue</h3>
-                                <div className="p-2 bg-purple-500/20 rounded-lg">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <div className="text-3xl font-bold text-purple-500">${stats.totalRevenue?.toFixed(2)}</div>
-                        </div>
-                    </div>
-
-                    {/* Payment charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                        {/* Monthly payments chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Monthly Payment Amounts</h3>
-                            <div style={{ height: '300px' }} className="relative">
-                                <Bar
-                                    data={monthlyPaymentsData}
-                                    options={{
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                labels: {
-                                                    color: '#D1D5DB'
-                                                }
-                                            },
-                                        },
-                                        scales: {
-                                            x: {
-                                                grid: {
-                                                    color: 'rgba(209, 213, 219, 0.1)'
-                                                },
-                                                ticks: {
-                                                    color: '#D1D5DB'
-                                                }
-                                            },
-                                            y: {
-                                                grid: {
-                                                    color: 'rgba(209, 213, 219, 0.1)'
-                                                },
-                                                ticks: {
-                                                    color: '#D1D5DB',
-                                                    callback: function (value) {
-                                                        return '$' + value;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Payment method chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Payment Method Distribution</h3>
-                            <div style={{ height: '300px' }} className="relative">
-                                <Pie
-                                    data={paymentMethodData}
-                                    options={{
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                position: 'right',
-                                                labels: {
-                                                    color: '#D1D5DB'
-                                                }
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Create Payment Form */}
                     <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow mb-8">
                         <h2 className="text-xl font-semibold text-yellow-500 mb-5">Add New Payment</h2>
@@ -531,6 +416,123 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                         </form>
                     </div>
 
+
+                    {/* Stats summary */}
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Total Payments</h3>
+                                <div className="p-2 bg-green-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-green-500">{stats.totalPayments}</div>
+                        </div>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Completed Payments</h3>
+                                <div className="p-2 bg-blue-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-blue-500">{stats.completedPayments}</div>
+                        </div>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Pending Payments</h3>
+                                <div className="p-2 bg-yellow-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-yellow-500">{stats.pendingPayments}</div>
+                        </div>
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-sm text-gray-400">Total Revenue</h3>
+                                <div className="p-2 bg-purple-500/20 rounded-lg">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="text-3xl font-bold text-purple-500">${stats.totalRevenue?.toFixed(2)}</div>
+                        </div>
+                    </div>
+
+                    {/* Payment charts */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        {/* Monthly payments chart */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Monthly Payment Amounts</h3>
+                            <div style={{ height: '300px' }} className="relative">
+                                <Bar
+                                    data={monthlyPaymentsData}
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                labels: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            },
+                                        },
+                                        scales: {
+                                            x: {
+                                                grid: {
+                                                    color: 'rgba(209, 213, 219, 0.1)'
+                                                },
+                                                ticks: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            },
+                                            y: {
+                                                grid: {
+                                                    color: 'rgba(209, 213, 219, 0.1)'
+                                                },
+                                                ticks: {
+                                                    color: '#D1D5DB',
+                                                    callback: function (value) {
+                                                        return '$' + value;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Payment method chart */}
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
+                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Payment Method Distribution</h3>
+                            <div style={{ height: '300px' }} className="relative">
+                                <Pie
+                                    data={paymentMethodData}
+                                    options={{
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                position: 'right',
+                                                labels: {
+                                                    color: '#D1D5DB'
+                                                }
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+
                     {/* Payments Table */}
                     <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                         <h2 className="text-xl font-semibold text-yellow-500 mb-5">All Payments</h2>
@@ -583,8 +585,8 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                             </td>
                                             <td className="py-3 px-4">
                                                 <span className={`text-xs font-semibold px-2 py-1 rounded-full ${p.status === 'completed' ? 'bg-green-600/20 text-green-400' :
-                                                        p.status === 'pending' ? 'bg-yellow-600/20 text-yellow-400' :
-                                                            'bg-red-600/20 text-red-400'
+                                                    p.status === 'pending' ? 'bg-yellow-600/20 text-yellow-400' :
+                                                        'bg-red-600/20 text-red-400'
                                                     }`}>
                                                     {p.status}
                                                 </span>

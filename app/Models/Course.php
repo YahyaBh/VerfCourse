@@ -25,11 +25,8 @@ class Course extends Model
 
     public function students()
     {
-        return $this->belongsToMany(Student::class, 'student_courses')
+        return $this->belongsToMany(Student::class, 'student_course')
             ->withPivot([
-                'enrollment_date',
-                'completion_date',
-                'status',
                 'weekly_quizzes_score',
                 'exercises_score',
                 'final_project_score',

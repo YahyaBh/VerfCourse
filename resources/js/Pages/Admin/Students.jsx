@@ -5,9 +5,14 @@ import AdminSidebar from "@/Components/AdminSidebar";
 import axios from "axios";
 import moment from "moment";
 
-const Students = ({ students, courses, studentCourses }) => {
-    const [studentsList, setStudentsList] = useState(students || []);
-    const [filteredStudents, setFilteredStudents] = useState(students || []);
+const Students = ({ students = [], courses = [], studentCourses = [] }) => {
+    // Make sure students is always an array
+    const safeStudents = Array.isArray(students) ? students : [];
+    const safeCourses = Array.isArray(courses) ? courses : [];
+    const safeStudentCourses = Array.isArray(studentCourses) ? studentCourses : [];
+
+    const [studentsList, setStudentsList] = useState(safeStudents);
+    const [filteredStudents, setFilteredStudents] = useState(safeStudents);
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [isEditing, setIsEditing] = useState(false);
@@ -26,34 +31,56 @@ const Students = ({ students, courses, studentCourses }) => {
     useEffect(() => {
         // Initialize payment status from the students data
         const initialPaymentStatus = {};
-        students.forEach(student => {
-            initialPaymentStatus[student.id] = student.payment_status;
+        safeStudents.forEach(student => {
+            if (student && student.id) {
+                initialPaymentStatus[student.id] = student.payment_status || 'pending';
+            }
         });
         setPaymentStatus(initialPaymentStatus);
-    }, [students]);
+    }, [safeStudents]);
 
     // Helper function to get course name by student ID
+    // Add this to log the value of student data
     const getCourseNameByStudentId = (studentId) => {
-        // Find the student's course enrollment in the studentCourses array
-        const studentCourse = studentCourses.find(sc => sc.student_id === studentId);
+        console.log("Checking studentId:", studentId);  // log the studentId being passed
+        if (!safeStudentCourses || safeStudentCourses.length === 0) {
+            console.log("No student courses available");
+            return 'No course assigned';
+        }
 
-        if (!studentCourse) return 'No course assigned';
+        const studentCourse = safeStudentCourses.find(sc => sc && sc.student_id === studentId);
+        console.log("Student course found:", studentCourse);  // log studentCourse found
 
-        // Find the course in the courses array using the course_id from studentCourse
-        const course = courses.find(c => c.id === studentCourse.course_id);
+        if (!studentCourse) {
+            console.log("No course assigned for student:", studentId);
+            return 'No course assigned';
+        }
+
+        if (!safeCourses || safeCourses.length === 0) {
+            console.log("No courses available");
+            return 'Unknown course';
+        }
+
+        const course = safeCourses.find(c => c && c.id === studentCourse.course_id);
+        console.log("Course found:", course);  // log course found
+
         return course ? course.name : 'Unknown course';
     };
+
+
 
     const handleSearch = (e) => {
         const value = e.target.value.toLowerCase();
         setSearchTerm(value);
 
         const filtered = studentsList.filter((student) => {
+            if (!student) return false;
+
             const courseName = getCourseNameByStudentId(student.id);
             return (
-                student.first_name.toLowerCase().includes(value) ||
-                student.last_name.toLowerCase().includes(value) ||
-                student.email.toLowerCase().includes(value) ||
+                (student.first_name && student.first_name.toLowerCase().includes(value)) ||
+                (student.last_name && student.last_name.toLowerCase().includes(value)) ||
+                (student.email && student.email.toLowerCase().includes(value)) ||
                 (courseName && courseName.toLowerCase().includes(value))
             );
         });
@@ -79,7 +106,8 @@ const Students = ({ students, courses, studentCourses }) => {
         try {
             const response = await axios.post("/api/student/create", newStudent);
 
-            if (response.status === 201) {
+            // Check if the response was successful (status code in the 200 range)
+            if (response.status >= 200 && response.status < 300) {
                 toast.success("Student created successfully!");
                 setIsAdding(false);
                 // Add the new student to the list
@@ -96,28 +124,38 @@ const Students = ({ students, courses, studentCourses }) => {
                 toast.error("Error creating student.");
             }
         } catch (error) {
-            console.error(error);
-            toast.error("Error creating student.");
+            console.error("Error creating student:", error);
+
+            // Check if there's a specific error message from the server
+            if (error.response && error.response.data && error.response.data.message) {
+                toast.error(error.response.data.message);
+            } else {
+                toast.error("Error creating student.");
+            }
         } finally {
             setLoading(false);
         }
     };
 
     const handleEdit = (student) => {
+        if (!student) return;
+
         setSelectedStudent(student);
         setNewStudent({
-            first_name: student.first_name,
-            last_name: student.last_name,
-            email: student.email,
-            status: student.status,
-            course_id: student.course_id,
-            payment_status: student.payment_status,
+            first_name: student.first_name || "",
+            last_name: student.last_name || "",
+            email: student.email || "",
+            status: student.status || "active",
+            course_id: student.course_id || "",
+            payment_status: student.payment_status || "pending",
         });
         setIsEditing(true);
     };
 
     const handleUpdate = async (e) => {
         e.preventDefault();
+        if (!selectedStudent) return;
+
         setLoading(true);
 
         try {
@@ -328,7 +366,7 @@ const Students = ({ students, courses, studentCourses }) => {
                                     <div key={student.id} className="bg-gray-800/30 m-4 p-4 rounded-lg border border-gray-700">
                                         <div className="flex items-center mb-3">
                                             <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
-                                                {student.first_name.charAt(0)}{student.last_name.charAt(0)}
+                                                {student.first_name ? student.first_name.charAt(0) : ''}{student.last_name ? student.last_name.charAt(0) : ''}
                                             </div>
                                             <div className="ml-3">
                                                 <div className="text-sm font-medium text-white">
@@ -343,7 +381,7 @@ const Students = ({ students, courses, studentCourses }) => {
                                         <div className="space-y-2 text-sm">
                                             <div className="flex justify-between">
                                                 <span className="text-gray-400">Email:</span>
-                                                <span className="text-gray-300 truncate max-w-[180px]">{student.email}</span>
+                                                <span className="text-gray-300 truncate max-w-[180px]">{student.email || ''}</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-gray-400">Course:</span>
@@ -352,7 +390,7 @@ const Students = ({ students, courses, studentCourses }) => {
                                             <div className="flex justify-between items-center">
                                                 <span className="text-gray-400">Payment:</span>
                                                 <select
-                                                    value={paymentStatus[student.id] || student.payment_status}
+                                                    value={paymentStatus[student.id] || student.payment_status || 'pending'}
                                                     onChange={(e) =>
                                                         handlePaymentStatusChange(student.id, e.target.value)
                                                     }
@@ -460,27 +498,27 @@ const Students = ({ students, courses, studentCourses }) => {
                                                 <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
                                                         <div className="flex-shrink-0 h-8 w-8 md:h-10 md:w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs md:text-sm">
-                                                            {student.first_name.charAt(0)}{student.last_name.charAt(0)}
+                                                            {student.first_name ? student.first_name.charAt(0) : ''}{student.last_name ? student.last_name.charAt(0) : ''}
                                                         </div>
                                                         <div className="ml-2 md:ml-4">
                                                             <div className="text-sm font-medium text-white">
                                                                 {student.first_name} {student.last_name}
                                                             </div>
                                                             <div className="text-xs md:text-sm text-gray-400">
-                                                                {student.email}
+                                                                {student.email || ''}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {student.email}
+                                                    {student.email || ''}
                                                 </td>
                                                 <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap text-sm text-gray-300">
                                                     {getCourseNameByStudentId(student.id)}
                                                 </td>
                                                 <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
                                                     <select
-                                                        value={paymentStatus[student.id] || student.payment_status}
+                                                        value={paymentStatus[student.id] || student.payment_status || 'pending'}
                                                         onChange={(e) =>
                                                             handlePaymentStatusChange(student.id, e.target.value)
                                                         }
@@ -624,7 +662,7 @@ const Students = ({ students, courses, studentCourses }) => {
                                         className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                                     >
                                         <option value="">Select a course</option>
-                                        {courses && courses.map(course => (
+                                        {safeCourses && safeCourses.map(course => (
                                             <option key={course.id} value={course.id}>
                                                 {course.name}
                                             </option>
@@ -723,7 +761,7 @@ const Students = ({ students, courses, studentCourses }) => {
                                         className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                                     >
                                         <option value="">Select a course</option>
-                                        {courses && courses.map(course => (
+                                        {safeCourses && safeCourses.map(course => (
                                             <option key={course.id} value={course.id}>
                                                 {course.name}
                                             </option>

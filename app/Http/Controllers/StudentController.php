@@ -14,18 +14,16 @@ class StudentController extends Controller
     // Get all students with their course information
     public function index()
     {
-        $students = Student::all();
+        $students = Student::with('courses')->get();
         $courses = Course::all();
-
-        // Get all student-course relationships
-        $studentCourses = \DB::table('course_student')->get();
 
         return Inertia::render('Admin/Students', [
             'students' => $students,
-            'courses' => $courses,
-            'studentCourses' => $studentCourses
+            'courses' => $courses
         ]);
     }
+
+
 
     // Get a specific student with their course information
     public function show($id)
@@ -66,11 +64,14 @@ class StudentController extends Controller
             $student->courses()->attach($request->course_id);
         }
 
-        return response()->json([
+        
+        return Inertia::render('Admin/Students', [
             'message' => 'Student created successfully',
-            'student' => $student
+            'student' => $student,
         ]);
     }
+
+
 
     // Update a student
     public function update(Request $request, $id)

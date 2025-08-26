@@ -9,6 +9,7 @@ class Student extends Model
 {
     use HasFactory;
 
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -16,7 +17,7 @@ class Student extends Model
         'dob',
         'phone_number',
         'status',
-        'payment_status'
+        'payment_status' // Make sure this is here
     ];
 
     protected $casts = [
@@ -25,9 +26,12 @@ class Student extends Model
         'payment_status' => 'string',
     ];
 
+
+
+    // In Student model
     public function courses()
     {
-        return $this->belongsToMany(Course::class, 'course_student')
+        return $this->belongsToMany(Course::class, 'student_course')
             ->withPivot([
                 'weekly_quizzes_score',
                 'exercises_score',
