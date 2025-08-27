@@ -7,7 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "barryvdh/laravel-dompdf": "^3.1",
+        "barryvdh/laravel-dompdf": "*",
         "barryvdh/laravel-snappy": "^1.0",
         "chillerlan/php-qrcode": "^5.0",
         "inertiajs/inertia-laravel": "^2.0",
@@ -17,6 +17,7 @@
         "laravel/tinker": "^2.10.1",
         "setasign/fpdf": "^1.8",
         "setasign/fpdi": "^2.6",
+        "tecnickcom/tcpdf": "^6.10",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

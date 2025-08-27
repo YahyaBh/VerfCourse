@@ -1,9 +1,6 @@
 <?php
 
 return [
-
-    'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
-
     /*
     |--------------------------------------------------------------------------
     | Application Name

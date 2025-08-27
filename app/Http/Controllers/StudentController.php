@@ -11,31 +11,23 @@ use Inertia\Inertia;
 
 class StudentController extends Controller
 {
-    // Get all students with their course information
+    // Get all students with their course information and payment status
     public function index()
     {
-        $students = Student::with('courses')->get();
+        $students = Student::all();
         $courses = Course::all();
+        
+        // Get all student-course relationships
+        $studentCourses = \DB::table('student_course')->get();
+        
+        // Get all payments
+        $payments = Payment::all();
 
         return Inertia::render('Admin/Students', [
             'students' => $students,
-            'courses' => $courses
-        ]);
-    }
-
-
-
-    // Get a specific student with their course information
-    public function show($id)
-    {
-        $student = Student::findOrFail($id);
-        $courses = Course::all();
-        $studentCourses = $student->courses()->withPivot(['weekly_quizzes_score', 'exercises_score', 'final_project_score', 'participation_score', 'total_score', 'grade'])->get();
-
-        return Inertia::render('Admin/StudentDetails', [
-            'student' => $student,
             'courses' => $courses,
-            'studentCourses' => $studentCourses
+            'studentCourses' => $studentCourses,
+            'payments' => $payments
         ]);
     }
 
@@ -56,7 +48,6 @@ class StudentController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'status' => $request->status,
-            'payment_status' => $request->payment_status,
         ]);
 
         // If a course_id is provided, enroll the student in the course
@@ -64,14 +55,93 @@ class StudentController extends Controller
             $student->courses()->attach($request->course_id);
         }
 
-        
-        return Inertia::render('Admin/Students', [
+        // Create a payment record for the student
+        Payment::create([
+            'student_id' => $student->id,
+            'status' => $request->payment_status,
+            'amount' => 0, // You can adjust this as needed
+            'payment_date' => now(),
+        ]);
+
+        return response()->json([
             'message' => 'Student created successfully',
             'student' => $student,
         ]);
     }
 
+    public function show($id)
+    {
+        $student = Student::findOrFail($id);
+        $courses = Course::all();
+        
+        // Get the student's courses with pivot data
+        $studentCourses = $student->courses()->withPivot([
+            'weekly_quizzes_score',
+            'exercises_score',
+            'final_project_score',
+            'participation_score',
+            'total_score',
+            'grade'
+        ])->get();
+        
+        // Get the student's payment status
+        $payments = Payment::where('student_id', $student->id)->get();
+        $paymentStatus = 'pending'; // Default status
+        
+        // Check if the student has any completed payments
+        if ($payments->where('status', 'completed')->count() > 0) {
+            $paymentStatus = 'completed';
+        }
+        
+        // Convert to an array
+        $studentGrades = $studentCourses->toArray();
 
+        return Inertia::render('Admin/Student', [
+            'student' => $student,
+            'courses' => $courses,
+            'studentGrades' => $studentGrades,
+            'paymentStatus' => $paymentStatus
+        ]);
+    }
+
+    public function updateGrades(Request $request, $id)
+    {
+        $student = Student::findOrFail($id);
+        
+        $validated = $request->validate([
+            'grades' => 'required|array',
+            'grades.*.weekly_quizzes_score' => 'nullable|numeric|min:0|max:25',
+            'grades.*.exercises_score' => 'nullable|numeric|min:0|max:25',
+            'grades.*.final_project_score' => 'nullable|numeric|min:0|max:25',
+            'grades.*.participation_score' => 'nullable|numeric|min:0|max:25',
+        ]);
+
+        foreach ($validated['grades'] as $courseId => $grades) {
+            $totalScore = (
+                ($grades['weekly_quizzes_score'] ?? 0) +
+                ($grades['exercises_score'] ?? 0) +
+                ($grades['final_project_score'] ?? 0) +
+                ($grades['participation_score'] ?? 0)
+            );
+
+            $grade = 'F';
+            if ($totalScore >= 90) $grade = 'A';
+            elseif ($totalScore >= 80) $grade = 'B';
+            elseif ($totalScore >= 70) $grade = 'C';
+            elseif ($totalScore >= 60) $grade = 'D';
+
+            $student->courses()->updateExistingPivot($courseId, [
+                'weekly_quizzes_score' => $grades['weekly_quizzes_score'] ?? 0,
+                'exercises_score' => $grades['exercises_score'] ?? 0,
+                'final_project_score' => $grades['final_project_score'] ?? 0,
+                'participation_score' => $grades['participation_score'] ?? 0,
+                'total_score' => $totalScore,
+                'grade' => $grade
+            ]);
+        }
+
+        return back()->with('success', 'Grades updated successfully');
+    }
 
     // Update a student
     public function update(Request $request, $id)
@@ -92,7 +162,6 @@ class StudentController extends Controller
             'last_name' => $request->last_name,
             'email' => $request->email,
             'status' => $request->status,
-            'payment_status' => $request->payment_status,
         ]);
 
         // Update course enrollment if course_id is provided
@@ -104,6 +173,20 @@ class StudentController extends Controller
         } else {
             // If no course_id is provided, detach from all courses
             $student->courses()->detach();
+        }
+
+        // Update payment status
+        $payment = Payment::where('student_id', $student->id)->first();
+        if ($payment) {
+            $payment->update(['status' => $request->payment_status]);
+        } else {
+            // Create a new payment record if none exists
+            Payment::create([
+                'student_id' => $student->id,
+                'status' => $request->payment_status,
+                'amount' => 0, // You can adjust this as needed
+                'payment_date' => now(),
+            ]);
         }
 
         return response()->json([
@@ -119,6 +202,9 @@ class StudentController extends Controller
 
         // Detach from all courses before deleting
         $student->courses()->detach();
+        
+        // Delete all payments for this student
+        Payment::where('student_id', $student->id)->delete();
 
         $student->delete();
 
@@ -159,26 +245,22 @@ class StudentController extends Controller
         // Find the student
         $student = Student::findOrFail($id);
 
-        // Update student payment status
-        $student->update(['payment_status' => $request->status]);
+        // Find or create a payment record for this student
+        $payment = Payment::firstOrCreate(
+            ['student_id' => $student->id],
+            [
+                'amount' => 0, // You can adjust this as needed
+                'payment_date' => now(),
+            ]
+        );
 
-        // If payment is marked as completed, update the latest payment record
-        if ($request->status == 'completed') {
-            // Get the latest payment for this student (optional: filter by course if needed)
-            $payment = Payment::where('student_id', $student->id)
-                ->latest()
-                ->first();
-
-            if ($payment) {
-                $payment->update(['status' => 'completed']);
-            }
-        }
+        // Update the payment status
+        $payment->update(['status' => $request->status]);
 
         return response()->json([
             'message' => 'Payment status updated successfully'
         ]);
     }
-
 
     // Change student's course
     public function changeCourse(Request $request, $id)

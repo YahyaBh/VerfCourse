@@ -6,7 +6,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use PDF; // Make sure barryvdh/laravel-dompdf is installed
+use TCPDF;
 
 class InvoiceController extends Controller
 {
@@ -40,14 +40,34 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::with(['payment.student', 'payment.course'])->findOrFail($id);
 
-        $pdf = PDF::loadView('invoices.template', [
+        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        // Set document information
+        $pdf->SetCreator('Your Application Name');
+        $pdf->SetAuthor('Your Application Name');
+        $pdf->SetTitle('Invoice ' . $invoice->invoice_number);
+        $pdf->SetSubject('Invoice');
+
+        // Add a page
+        $pdf->AddPage();
+
+        // Create the HTML content for the PDF
+        $html = view('invoices.template', [
             'invoice' => $invoice,
             'payment' => $invoice->payment,
             'student' => $invoice->payment->student,
             'course' => $invoice->payment->course,
-        ]);
+        ])->render();
 
-        return $pdf->download($invoice->invoice_number . '.pdf');
+        // Write the HTML content to the PDF
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        // Close and output PDF document
+        // Use 'I' to send the file inline to the browser or 'D' to force a download
+        return response($pdf->Output($invoice->invoice_number . '.pdf', 'S'), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $invoice->invoice_number . '.pdf"',
+        ]);
     }
 
     /**
@@ -67,7 +87,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::create([
             'payment_id' => $payment->id,
             'invoice_number' => $invoiceNumber,
-            'issued_date' => Carbon::now()->toDateString(), 
+            'issued_date' => Carbon::now()->toDateString(),
         ]);
 
         return response()->json([

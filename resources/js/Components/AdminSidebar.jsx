@@ -1,8 +1,35 @@
-import React from "react";
-import { Link, usePage } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
+import { Link, usePage, router } from "@inertiajs/react";
 
 const AdminSidebar = ({ activeItem }) => {
     const { auth } = usePage().props;
+    const [courses, setCourses] = useState([]);
+    const [showCourseModal, setShowCourseModal] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (activeItem === "Attendance") {
+            fetchCourses();
+        }
+    }, [activeItem]);
+
+    const fetchCourses = async () => {
+        setLoading(true);
+        try {
+            const response = await fetch('/api/courses');
+            const data = await response.json();
+            setCourses(data);
+        } catch (error) {
+            console.error('Error fetching courses:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCourseSelect = (courseId) => {
+        setShowCourseModal(false);
+        router.visit(`/courses/${courseId}/attendance`);
+    };
 
     const navItems = [
         {
@@ -48,10 +75,11 @@ const AdminSidebar = ({ activeItem }) => {
             label: "Attendance",
             href: "/admin/attendance",
             icon: (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="XXXXXXXXXXXXXXXXXXXXXXXXXX">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-            )
+            ),
+            isModal: true
         },
         {
             label: "Payments",
@@ -65,59 +93,111 @@ const AdminSidebar = ({ activeItem }) => {
                     <path d="M15.5 11V16" stroke="#eab308" strokeWidth="1.5" />
                     <path d="M14 13.5H17" stroke="#eab308" strokeWidth="1.5" />
                 </svg>
-
             )
         }
     ];
 
     return (
-        <aside className="bg-gradient-to-b from-gray-800 to-black text-white w-60 min-h-screen flex flex flex-col justify-between py-6">
-            <div className="px-6">
-                {/* Logo / Brand */}
-                <div className="flex items-center mb-8">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xl">
-                        W
+        <>
+            <aside className="bg-gradient-to-b from-gray-800 to-black text-white w-60 min-h-screen flex flex flex-col justify-between py-6">
+                <div className="px-6">
+                    {/* Logo / Brand */}
+                    <div className="flex items-center mb-8">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xl">
+                            W
+                        </div>
+                        <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                            WEBINA
+                        </span>
                     </div>
-                    <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
-                        WEBINA
-                    </span>
+
+                    {/* Navigation */}
+                    <nav className="flex-1 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.isModal ? "#" : item.href}
+                                onClick={(e) => {
+                                    if (item.isModal) {
+                                        e.preventDefault();
+                                        setShowCourseModal(true);
+                                        if (courses.length === 0) {
+                                            fetchCourses();
+                                        }
+                                    }
+                                }}
+                                className={`flex items-center justify-between px-4 py-3 rounded-lg ${activeItem === item.label
+                                    ? "bg-gray-800/50 text-white"
+                                    : "text-gray-400 hover:bg-gray-800/30 hover:text-white"
+                                    } transition-colors`}
+                            >
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-yellow-500">{item.icon}</span>
+                                    <span className="font-medium">{item.label}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 space-y-1">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.label}
-                            href={item.href}
-                            className={`flex items-center justify-between px-4 py-3 rounded-lg ${activeItem === item.label
-                                ? "bg-gray-800/50 text-white"
-                                : "text-gray-400 hover:bg-gray-800/30 hover:text-white"
-                                } transition-colors`}
-                        >
-                            <div className="flex items-center space-x-3">
-                                <span className="text-yellow-500">{item.icon}</span>
-                                <span className="font-medium">{item.label}</span>
+                {/* User profile section */}
+                <div className="px-6 mt-auto">
+                    <div className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl">
+                        {/* User avatar with gradient background */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
+                            {auth.user.name ? auth.user.name.charAt(0) : 'U'}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            {/* User name and email */}
+                            <div className="text-sm font-bold text-white">{auth.user.name}</div>
+                            <div className="text-xs text-gray-400 truncate">{auth.user.email}</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Course Selection Modal */}
+            {showCourseModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-2xl font-bold text-white">Select a Course</h2>
+                            <button
+                                onClick={() => setShowCourseModal(false)}
+                                className="text-gray-400 hover:text-white"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        {loading ? (
+                            <div className="flex justify-center items-center h-40">
+                                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-yellow-500"></div>
                             </div>
-                        </Link>
-                    ))}
-                </nav>
-            </div>
-
-            {/* User profile section */}
-            <div className="px-6 mt-auto">
-                <div className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl">
-                    {/* User avatar with gradient background */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
-                        {auth.user.name ? auth.user.name.charAt(0) : 'U'}
-                    </div>
-                    <div>
-                        {/* User name and email */}
-                        <div className="text-sm font-bold text-white">{auth.user.name}</div>
-                        <div className="text-xs text-gray-400">{auth.user.email}</div>
+                        ) : courses.length > 0 ? (
+                            <div className="grid grid-cols-1 gap-4">
+                                {courses.map((course) => (
+                                    <div
+                                        key={course.id}
+                                        onClick={() => handleCourseSelect(course.id)}
+                                        className="bg-gray-700/50 rounded-lg p-4 hover:bg-gray-700 cursor-pointer transition-colors"
+                                    >
+                                        <h3 className="text-lg font-semibold text-white mb-2">{course.name}</h3>
+                                        <p className="text-gray-400 text-sm">{course.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <p className="text-gray-400">No courses found</p>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </div>
-        </aside>
+            )}
+        </>
     );
 };
 

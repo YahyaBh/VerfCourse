@@ -57,7 +57,6 @@ class Course extends Model
         return $this->hasMany(Invoice::class);
     }
 
-    // Add a method to get the count of enrolled students
     public function getStudentsCountAttribute()
     {
         return $this->students()->count();

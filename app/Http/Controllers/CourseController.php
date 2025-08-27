@@ -10,6 +10,14 @@ use Inertia\Inertia;
 class CourseController extends Controller
 {
 
+
+
+    public function getAllCourses()
+    {
+        $courses = Course::select('id', 'name' , 'description')->get();
+        return response()->json($courses);
+    }
+
     /**
      * Display a listing of the resource.
      */

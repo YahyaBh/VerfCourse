@@ -224,7 +224,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
             {
-                label: "Monthly Payments ($)",
+                label: "Monthly Payments (MAD)",
                 data: chartData.monthlyPayments,
                 backgroundColor: "rgba(253, 224, 71, 0.6)",
                 borderColor: "rgba(253, 224, 71, 1)",
@@ -332,7 +332,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                     <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-1">Amount</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="text-gray-400 sm:text-sm">$</span>
+                                            <span className="text-gray-400 sm:text-sm">MAD</span>
                                         </div>
                                         <input
                                             type="number"
@@ -462,7 +462,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                 </div>
                             </div>
                             <div className="text-3xl font-bold text-purple-500">
-                                ${(Number(stats.totalRevenue) || 0).toFixed(2)}
+                                MAD{(Number(stats.totalRevenue) || 0).toFixed(2)}
                             </div>
 
                         </div>
@@ -502,7 +502,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                                 ticks: {
                                                     color: '#D1D5DB',
                                                     callback: function (value) {
-                                                        return '$' + value;
+                                                        return 'MAD' + value;
                                                     }
                                                 }
                                             }
@@ -579,7 +579,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4">
-                                                <div className="text-sm font-medium text-gray-300">${p.amount}</div>
+                                                <div className="text-sm font-medium text-gray-300">MAD{p.amount}</div>
                                             </td>
                                             <td className="py-3 px-4">
                                                 <span className="text-xs font-semibold px-2 py-1 rounded-full bg-blue-600/20 text-blue-400">
@@ -596,9 +596,10 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                             </td>
                                             <td className="py-3 px-4">
                                                 {p.invoice
-                                                    ? <Link href={`/invoices/${p.invoice.id}/download`} className="text-green-400 hover:text-green-300 text-sm font-medium">Download</Link>
+                                                    ? <a href={`/invoices/${p.invoice.id}/download`} className="text-green-400 hover:text-green-300 text-sm font-medium" download>Download</a>
                                                     : <button onClick={() => generateInvoice(p.id)} className="text-yellow-400 hover:text-yellow-300 text-sm font-medium">Generate</button>
                                                 }
+
                                             </td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center space-x-2">
@@ -706,7 +707,7 @@ const Payments = ({ payments: initialPayments = [], students = [], courses = [],
                                     <label className="block text-sm font-medium text-gray-400 mb-1">Amount</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <span className="text-gray-400 sm:text-sm">$</span>
+                                            <span className="text-gray-400 sm:text-sm">MAD</span>
                                         </div>
                                         <input
                                             type="number"

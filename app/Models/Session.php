@@ -9,6 +9,8 @@ class Session extends Model
 {
     use HasFactory;
 
+    protected $table = 'course_sessions'; // Add this line
+
     protected $fillable = [
         'course_id',
         'session_date',
