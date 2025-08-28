@@ -9,8 +9,8 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 ChartJS.register(
     CategoryScale,
     LinearScale,
-    PointElement, // Register PointElement (required for line charts)
-    LineElement,  // Register LineElement
+    PointElement,
+    LineElement,
     Title,
     Tooltip,
     Legend,
@@ -24,6 +24,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
     const [searchTerm, setSearchTerm] = useState("");
     const [stats, setStats] = useState(initialStats);
     const [studentTrends, setStudentTrends] = useState(new Array(12).fill(0));
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     // Search handler
     const handleSearch = (e) => {
@@ -43,7 +44,6 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
 
     // Data processing
     useEffect(() => {
-        // Process student trends data - group students by registration month
         const monthlyData = new Array(12).fill(0);
         students.forEach(student => {
             if (student.created_at) {
@@ -106,7 +106,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
         }
     };
 
-    // Trends chart (students registered over months)
+    // Trends chart
     const trendsData = {
         labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         datasets: [
@@ -121,7 +121,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
         ],
     };
 
-    // Student status distribution (Pie chart)
+    // Student status distribution
     const studentStatusData = {
         labels: ["Active", "Banned", "Pending Payment"],
         datasets: [
@@ -132,9 +132,9 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                     students.filter(s => s.payment_status === 'pending').length
                 ],
                 backgroundColor: [
-                    "rgba(74, 222, 128, 0.8)", // Green for Active
-                    "rgba(239, 68, 68, 0.8)",  // Red for Banned
-                    "rgba(253, 224, 71, 0.8)"   // Yellow for Pending Payment
+                    "rgba(74, 222, 128, 0.8)",
+                    "rgba(239, 68, 68, 0.8)",
+                    "rgba(253, 224, 71, 0.8)"
                 ],
                 borderColor: [
                     "rgba(74, 222, 128, 1)",
@@ -150,22 +150,32 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
         <>
             <Head title="Admin Dashboard" />
             <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-gray-800 text-yellow-500"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
                 {/* Sidebar */}
-                <AdminSidebar activeItem="Dashboard" />
+                <AdminSidebar activeItem="Dashboard" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
                 {/* Main content area */}
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     {/* Top bar */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-8">
-                        <div>
-                            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-6 lg:mb-8">
+                        <div className="mt-12 lg:mt-0">
+                            <h1 className="text-2xl lg:text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Dashboard
                             </h1>
-                            <p className="text-gray-400">Overview of your students and courses</p>
+                            <p className="text-gray-400 text-sm lg:text-base">Overview of your students and courses</p>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
                             {/* Search input */}
-                            <div className="relative flex items-center">
+                            <div className="relative flex items-center w-full sm:w-auto">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     className="absolute left-3 w-5 h-5 text-gray-500"
@@ -182,7 +192,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     value={searchTerm}
                                     onChange={handleSearch}
                                     placeholder="Search certificates..."
-                                    className="pl-10 pr-4 py-3 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                    className="w-full pl-10 pr-4 py-3 rounded-lg bg-gray-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                                 />
                             </div>
                             {/* Date display */}
@@ -197,14 +207,14 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                 >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                <span>{new Date().toLocaleDateString()}</span>
+                                <span className="text-sm">{new Date().toLocaleDateString()}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Stats summary */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 lg:gap-6 mb-6 lg:mb-8">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Total Students</h3>
                                 <div className="p-2 bg-green-500/20 rounded-lg">
@@ -213,9 +223,9 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-green-500">{stats.totalStudents ?? '-'}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-green-500">{stats.totalStudents ?? '-'}</div>
                         </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Active Students</h3>
                                 <div className="p-2 bg-blue-500/20 rounded-lg">
@@ -224,9 +234,9 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-blue-500">{students.filter(s => s.status === 'active').length}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-blue-500">{students.filter(s => s.status === 'active').length}</div>
                         </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Pending Payments</h3>
                                 <div className="p-2 bg-yellow-500/20 rounded-lg">
@@ -235,16 +245,16 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-yellow-500">{students.filter(s => s.payment_status === 'pending').length}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-yellow-500">{students.filter(s => s.payment_status === 'pending').length}</div>
                         </div>
                     </div>
 
                     {/* Student charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 lg:mb-8">
                         {/* Trends chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Student Registration Trends</h3>
-                            <div style={{ height: '300px' }} className="relative">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-md">
+                            <h3 className="text-base lg:text-lg font-semibold text-yellow-500 mb-4">Student Registration Trends</h3>
+                            <div style={{ height: '250px' }} className="relative">
                                 <Line
                                     data={trendsData}
                                     options={{
@@ -253,7 +263,10 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                         plugins: {
                                             legend: {
                                                 labels: {
-                                                    color: '#D1D5DB'
+                                                    color: '#D1D5DB',
+                                                    font: {
+                                                        size: 12
+                                                    }
                                                 }
                                             },
                                         },
@@ -263,7 +276,10 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                                     color: 'rgba(209, 213, 219, 0.1)'
                                                 },
                                                 ticks: {
-                                                    color: '#D1D5DB'
+                                                    color: '#D1D5DB',
+                                                    font: {
+                                                        size: 11
+                                                    }
                                                 }
                                             },
                                             y: {
@@ -271,7 +287,10 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                                     color: 'rgba(209, 213, 219, 0.1)'
                                                 },
                                                 ticks: {
-                                                    color: '#D1D5DB'
+                                                    color: '#D1D5DB',
+                                                    font: {
+                                                        size: 11
+                                                    }
                                                 }
                                             }
                                         }
@@ -281,9 +300,9 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                         </div>
 
                         {/* Student status chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Student Status Distribution</h3>
-                            <div style={{ height: '300px' }} className="relative">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-md">
+                            <h3 className="text-base lg:text-lg font-semibold text-yellow-500 mb-4">Student Status Distribution</h3>
+                            <div style={{ height: '250px' }} className="relative">
                                 <Pie
                                     data={studentStatusData}
                                     options={{
@@ -293,7 +312,11 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                             legend: {
                                                 position: 'right',
                                                 labels: {
-                                                    color: '#D1D5DB'
+                                                    color: '#D1D5DB',
+                                                    font: {
+                                                        size: 12
+                                                    },
+                                                    padding: 10
                                                 }
                                             }
                                         }
@@ -306,8 +329,8 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                     {/* Certificate table and extra panel */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Certificates Table */}
-                        <div className="lg:col-span-2 bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <h2 className="text-xl font-semibold text-yellow-500 mb-5">
+                        <div className="lg:col-span-2 bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <h2 className="text-lg lg:text-xl font-semibold text-yellow-500 mb-5">
                                 Recent Certificates
                             </h2>
                             {loading ? (
@@ -319,12 +342,12 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="border-b border-gray-600 text-gray-400">
-                                                <th className="py-3 px-4">Certificate ID</th>
-                                                <th className="py-3 px-4">Student Name</th>
-                                                <th className="py-3 px-4">Course</th>
-                                                <th className="py-3 px-4">Issued</th>
-                                                <th className="py-3 px-4">Status</th>
-                                                <th className="py-3 px-4">Actions</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Certificate ID</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Student Name</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm hidden sm:table-cell">Course</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm hidden md:table-cell">Issued</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Status</th>
+                                                <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -333,34 +356,30 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                                     key={certificate.id}
                                                     className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors"
                                                 >
-                                                    <td className="py-3 px-4">
-                                                        <span className="text-sm text-gray-300">
+                                                    <td className="py-3 px-2 lg:px-4">
+                                                        <span className="text-xs lg:text-sm text-gray-300">
                                                             {certificate.certificate_number}
                                                         </span>
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="py-3 px-2 lg:px-4">
                                                         <div className="flex items-center">
-                                                            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs">
+                                                            <div className="flex-shrink-0 h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs">
                                                                 {certificate.student_name?.charAt(0)}
                                                             </div>
-                                                            <span className="ml-2 text-sm text-gray-300">
+                                                            <span className="ml-2 text-xs lg:text-sm text-gray-300">
                                                                 {certificate.student_name}
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-4">
-                                                        <span className="text-sm text-gray-300">
-                                                            {certificate.course_name}
-                                                        </span>
+                                                    <td className="py-3 px-2 lg:px-4 text-xs lg:text-sm text-gray-300 hidden sm:table-cell">
+                                                        {certificate.course_name}
                                                     </td>
-                                                    <td className="py-3 px-4">
-                                                        <span className="text-sm text-gray-300">
-                                                            {certificate.issued_date}
-                                                        </span>
+                                                    <td className="py-3 px-2 lg:px-4 text-xs lg:text-sm text-gray-300 hidden md:table-cell">
+                                                        {certificate.issued_date}
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="py-3 px-2 lg:px-4">
                                                         <span
-                                                            className={`text-xs font-semibold px-3 py-1 rounded-full ${certificate.blocked
+                                                            className={`text-xs font-semibold px-2 lg:px-3 py-1 rounded-full ${certificate.blocked
                                                                 ? "bg-red-600/20 text-red-400"
                                                                 : "bg-green-600/20 text-green-400"
                                                                 }`}
@@ -368,8 +387,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                                             {certificate.blocked ? "Blocked" : "Active"}
                                                         </span>
                                                     </td>
-                                                    <td className="py-3 px-4 flex items-center space-x-2">
-                                                        {/* Block/Unblock */}
+                                                    <td className="py-3 px-2 lg:px-4 flex items-center space-x-2">
                                                         <button
                                                             onClick={() =>
                                                                 certificate.blocked
@@ -413,7 +431,6 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                                             )}
                                                         </button>
                                                     </td>
-
                                                 </tr>
                                             ))}
                                             {filteredCertificates.length === 0 && (
@@ -430,14 +447,13 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                         </div>
 
                         {/* Additional widget */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                            <h3 className="text-base lg:text-lg font-semibold text-yellow-500 mb-4">
                                 Student Breakdown
                             </h3>
-                            {/* Example minimalist chart using divs; replace with real chart if desired */}
                             <div className="space-y-4">
                                 <div>
-                                    <div className="flex justify-between mb-1 text-sm">
+                                    <div className="flex justify-between mb-1 text-xs lg:text-sm">
                                         <span className="text-gray-300">Active Students</span>
                                         <span className="text-gray-300">
                                             {students.filter(s => s.status === 'active').length} ({students.length ? Math.round((students.filter(s => s.status === 'active').length / students.length) * 100) : 0}%)
@@ -453,7 +469,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between mb-1 text-sm">
+                                    <div className="flex justify-between mb-1 text-xs lg:text-sm">
                                         <span className="text-gray-300">Banned Students</span>
                                         <span className="text-gray-300">
                                             {students.filter(s => s.status === 'banned').length} ({students.length ? Math.round((students.filter(s => s.status === 'banned').length / students.length) * 100) : 0}%)
@@ -469,7 +485,7 @@ const AdminDashboard = ({ certificates: initialCertificates = [], students = [],
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="flex justify-between mb-1 text-sm">
+                                    <div className="flex justify-between mb-1 text-xs lg:text-sm">
                                         <span className="text-gray-300">Students Pending Payment</span>
                                         <span className="text-gray-300">
                                             {students.filter(s => s.payment_status === 'pending').length} ({students.length ? Math.round((students.filter(s => s.payment_status === 'pending').length / students.length) * 100) : 0}%)

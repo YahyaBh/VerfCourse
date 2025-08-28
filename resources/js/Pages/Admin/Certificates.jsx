@@ -11,6 +11,7 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [isCreating, setIsCreating] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [newCertificate, setNewCertificate] = useState({
         student_id: "",
         course_id: "",
@@ -219,22 +220,32 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
         <>
             <Head title="Admin Certificates" />
             <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-gray-800 text-yellow-500"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
                 {/* Sidebar */}
-                <AdminSidebar activeItem="Certificates" />
+                <AdminSidebar activeItem="Certificates" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
                 {/* Main content area */}
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     {/* Top bar */}
-                    <div className="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-6 lg:mb-8">
+                        <div className="mt-12 lg:mt-0">
+                            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Manage Certificates
                             </h1>
-                            <p className="text-gray-400 mt-2">Manage and view all your certificates</p>
+                            <p className="text-gray-400 text-sm lg:text-base mt-2">Manage and view all your certificates</p>
                         </div>
                         <button
                             onClick={() => setIsCreating(true)}
-                            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center"
+                            className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 flex items-center justify-center"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -244,7 +255,7 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                     </div>
 
                     {/* Search bar */}
-                    <div className="mb-8">
+                    <div className="mb-6 lg:mb-8">
                         <div className="relative max-w-md">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -272,22 +283,22 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                 <table className="min-w-full divide-y divide-gray-700 overflow-hidden">
                                     <thead className="bg-gray-800/50 overflow-hidden">
                                         <tr>
-                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                                 Certificate ID
                                             </th>
-                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                                 Student Name
                                             </th>
-                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">
                                                 Course
                                             </th>
-                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider hidden md:table-cell">
                                                 Issued Date
                                             </th>
-                                            <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                                                 Status
                                             </th>
-                                            <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                            <th scope="col" className="px-4 lg:px-6 py-3 lg:py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                                                 Actions
                                             </th>
                                         </tr>
@@ -295,40 +306,40 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                     <tbody className="divide-y divide-gray-700">
                                         {filteredCertificates.map((certificate) => (
                                             <tr key={certificate.id} className="hover:bg-gray-800/30 transition-colors duration-200">
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-300">
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm font-medium text-gray-300">
                                                     {certificate.certificate_number}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
+                                                        <div className="flex-shrink-0 h-8 w-8 lg:h-10 lg:w-10 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs">
                                                             {getStudentName(certificate).charAt(0)}
                                                         </div>
-                                                        <div className="ml-4">
-                                                            <div className="text-sm font-medium text-white">
+                                                        <div className="ml-3 lg:ml-4">
+                                                            <div className="text-xs lg:text-sm font-medium text-white">
                                                                 {getStudentName(certificate)}
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-300 hidden sm:table-cell">
                                                     {getCourseName(certificate)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                                                    {moment(certificate.issued_date).format("MMMM Do YYYY")}
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-xs lg:text-sm text-gray-300 hidden md:table-cell">
+                                                    {moment(certificate.issued_date).format("MMM Do, YYYY")}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(certificate.blocked)}`}>
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap">
+                                                    <span className={`px-2 lg:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(certificate.blocked)}`}>
                                                         {certificate.blocked ? "Blocked" : "Active"}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                    <div className="flex justify-end space-x-2">
+                                                <td className="px-4 lg:px-6 py-3 lg:py-4 whitespace-nowrap text-right text-xs lg:text-sm font-medium">
+                                                    <div className="flex justify-end space-x-1 lg:space-x-2">
                                                         <button
                                                             onClick={() => handleEdit(certificate)}
                                                             className="text-yellow-500 hover:text-yellow-400 transition-colors duration-200"
                                                             title="Edit"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                                             </svg>
                                                         </button>
@@ -342,11 +353,11 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                                             title={certificate.blocked ? "Unblock" : "Block"}
                                                         >
                                                             {certificate.blocked ? (
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                                                 </svg>
                                                             ) : (
-                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                                 </svg>
                                                             )}
@@ -356,7 +367,7 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                                             className="text-blue-500 hover:text-blue-400 transition-colors duration-200"
                                                             title="Download"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0H8m4 0h4m-4-8h4M4 4h4m0 0v4" />
                                                             </svg>
                                                         </button>
@@ -365,7 +376,7 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                                             className="text-red-500 hover:text-red-400 transition-colors duration-200"
                                                             title="Delete"
                                                         >
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 lg:h-5 lg:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m0 0v6m0-6h6m-6 0H6" />
                                                             </svg>
                                                         </button>
@@ -404,19 +415,19 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
 
             {/* Modal for Create and Edit Certificate */}
             {isCreating && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
-                        <h3 className="text-2xl font-bold text-white mb-6">
+                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
+                    <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 lg:p-8 border border-gray-700">
+                        <h3 className="text-xl lg:text-2xl font-bold text-white mb-6">
                             {selectedCertificate ? "Edit Certificate" : "Create New Certificate"}
                         </h3>
                         <form onSubmit={selectedCertificate ? handleUpdate : handleCreate}>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-gray-400 mb-2">Student</label>
+                                    <label className="block text-gray-400 mb-2 text-sm">Student</label>
                                     <select
                                         value={newCertificate.student_id}
                                         onChange={(e) => setNewCertificate({ ...newCertificate, student_id: e.target.value })}
-                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
                                         required
                                     >
                                         <option value="">Select a student</option>
@@ -428,11 +439,11 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-gray-400 mb-2">Course</label>
+                                    <label className="block text-gray-400 mb-2 text-sm">Course</label>
                                     <select
                                         value={newCertificate.course_id}
                                         onChange={(e) => setNewCertificate({ ...newCertificate, course_id: e.target.value })}
-                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
                                         required
                                     >
                                         <option value="">Select a course</option>
@@ -444,17 +455,17 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-gray-400 mb-2">Issued Date</label>
+                                    <label className="block text-gray-400 mb-2 text-sm">Issued Date</label>
                                     <input
                                         type="date"
                                         value={newCertificate.issued_date}
                                         onChange={(e) => setNewCertificate({ ...newCertificate, issued_date: e.target.value })}
-                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-gray-400 mb-2">Certificate Number</label>
+                                    <label className="block text-gray-400 mb-2 text-sm">Certificate Number</label>
                                     <p className="text-gray-400 text-sm mb-2">
                                         It will be automatically generated on the server
                                     </p>
@@ -465,24 +476,24 @@ const AdminCertificates = ({ certificates = [], students = [], courses = [] }) =
                                         onChange={(e) =>
                                             setNewCertificate({ ...newCertificate, certificate_number: e.target.value })
                                         }
-                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50"
+                                        className="w-full bg-gray-700 text-white rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-yellow-500 disabled:opacity-50 text-sm"
                                         required
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex justify-between mt-8">
+                            <div className="flex flex-col sm:flex-row sm:justify-between mt-8 space-y-3 sm:space-y-0">
                                 <button
                                     type="button"
                                     onClick={() => setIsCreating(false)}
-                                    className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
+                                    className="w-full sm:w-auto bg-gray-700 hover:bg-gray-600 text-white py-3 px-6 rounded-lg transition-all duration-300"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
+                                    className="w-full sm:w-auto bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-medium py-3 px-6 rounded-lg transition-all duration-300 disabled:opacity-50"
                                 >
                                     {!loading ? (selectedCertificate ? "Update Certificate" : "Create Certificate") : "Processing..."}
                                 </button>

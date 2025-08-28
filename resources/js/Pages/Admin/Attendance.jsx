@@ -24,6 +24,7 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
         topic: ''
     });
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [chartData, setChartData] = useState({
         monthlyAttendance: new Array(12).fill(0),
         attendanceDistribution: { present: 0, absent: 0, late: 0 }
@@ -32,7 +33,6 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
     // Load chart data
     useEffect(() => {
         if (course) {
-            // Use the stats passed from the controller instead of fetching
             setChartData({
                 monthlyAttendance: stats.monthlyAttendance || new Array(12).fill(0),
                 attendanceDistribution: {
@@ -132,8 +132,18 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
     if (!course) {
         return (
             <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-                <AdminSidebar activeItem="Attendance" />
-                <main className="flex-1 overflow-y-auto p-6">
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-gray-800 text-yellow-500"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
+                <AdminSidebar activeItem="Attendance" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     <div className="text-center py-12">
                         <p className="text-gray-400">Please select a course to view attendance.</p>
                     </div>
@@ -146,21 +156,31 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
         <>
             <Head title={`Attendance - ${course.name}`} />
             <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-                <AdminSidebar activeItem="Attendance" />
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-gray-800 text-yellow-500"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
+                <AdminSidebar activeItem="Attendance" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-                <main className="flex-1 overflow-y-auto p-6">
+                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     {/* Top bar */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-8">
-                        <div>
-                            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-6 lg:mb-8">
+                        <div className="mt-12 lg:mt-0">
+                            <h1 className="text-2xl lg:text-4xl font-extrabold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Attendance Management
                             </h1>
-                            <p className="text-gray-400">Track attendance for {course.name}</p>
+                            <p className="text-gray-400 text-sm lg:text-base">Track attendance for {course.name}</p>
                         </div>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
                             <button
                                 onClick={() => setShowCreateModal(true)}
-                                className="px-6 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium rounded-lg hover:opacity-90 transition-opacity"
+                                className="w-full sm:w-auto px-4 lg:px-6 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium rounded-lg hover:opacity-90 transition-opacity"
                             >
                                 Add Session
                             </button>
@@ -175,14 +195,14 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                 >
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3M3 11h18M5 19h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
-                                <span>{new Date().toLocaleDateString()}</span>
+                                <span className="text-sm">{new Date().toLocaleDateString()}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Stats summary */}
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-8">
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-6 lg:mb-8">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Total Sessions</h3>
                                 <div className="p-2 bg-blue-500/20 rounded-lg">
@@ -191,9 +211,9 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-blue-500">{stats.totalSessions || 0}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-blue-500">{stats.totalSessions || 0}</div>
                         </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Present</h3>
                                 <div className="p-2 bg-green-500/20 rounded-lg">
@@ -202,9 +222,9 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-green-500">{stats.totalPresent || 0}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-green-500">{stats.totalPresent || 0}</div>
                         </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Absent</h3>
                                 <div className="p-2 bg-red-500/20 rounded-lg">
@@ -213,9 +233,9 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-red-500">{stats.totalAbsent || 0}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-red-500">{stats.totalAbsent || 0}</div>
                         </div>
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                             <div className="flex items-center justify-between mb-3">
                                 <h3 className="text-sm text-gray-400">Late</h3>
                                 <div className="p-2 bg-yellow-500/20 rounded-lg">
@@ -224,16 +244,16 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                     </svg>
                                 </div>
                             </div>
-                            <div className="text-3xl font-bold text-yellow-500">{stats.totalLate || 0}</div>
+                            <div className="text-2xl lg:text-3xl font-bold text-yellow-500">{stats.totalLate || 0}</div>
                         </div>
                     </div>
 
                     {/* Attendance charts */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 lg:mb-8">
                         {/* Monthly attendance chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Monthly Sessions</h3>
-                            <div style={{ height: '300px' }} className="relative">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-md">
+                            <h3 className="text-base lg:text-lg font-semibold text-yellow-500 mb-4">Monthly Sessions</h3>
+                            <div style={{ height: '250px' }} className="relative">
                                 <Bar
                                     data={monthlyAttendanceData}
                                     options={{
@@ -250,7 +270,10 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                                     color: 'rgba(209, 213, 219, 0.1)'
                                                 },
                                                 ticks: {
-                                                    color: '#D1D5DB'
+                                                    color: '#D1D5DB',
+                                                    font: {
+                                                        size: 11
+                                                    }
                                                 }
                                             },
                                             y: {
@@ -259,7 +282,10 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                                 },
                                                 ticks: {
                                                     color: '#D1D5DB',
-                                                    stepSize: 1
+                                                    stepSize: 1,
+                                                    font: {
+                                                        size: 11
+                                                    }
                                                 }
                                             }
                                         }
@@ -269,9 +295,9 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                         </div>
 
                         {/* Attendance distribution chart */}
-                        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-md">
-                            <h3 className="text-lg font-semibold text-yellow-500 mb-4">Attendance Distribution</h3>
-                            <div style={{ height: '300px' }} className="relative">
+                        <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-md">
+                            <h3 className="text-base lg:text-lg font-semibold text-yellow-500 mb-4">Attendance Distribution</h3>
+                            <div style={{ height: '250px' }} className="relative">
                                 <Pie
                                     data={attendanceDistributionData}
                                     options={{
@@ -282,7 +308,10 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                                 position: 'right',
                                                 labels: {
                                                     color: '#D1D5DB',
-                                                    padding: 20
+                                                    padding: 15,
+                                                    font: {
+                                                        size: 12
+                                                    }
                                                 }
                                             }
                                         }
@@ -293,56 +322,52 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                     </div>
 
                     {/* Sessions Table */}
-                    <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
-                        <h2 className="text-xl font-semibold text-yellow-500 mb-5">All Sessions</h2>
+                    <div className="bg-gray-800/50 backdrop-blur-sm p-4 lg:p-6 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
+                        <h2 className="text-lg lg:text-xl font-semibold text-yellow-500 mb-5">All Sessions</h2>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-gray-600 text-gray-400">
-                                        <th className="py-3 px-4">Date</th>
-                                        <th className="py-3 px-4">Topic</th>
-                                        <th className="py-3 px-4">Present</th>
-                                        <th className="py-3 px-4">Absent</th>
-                                        <th className="py-3 px-4">Late</th>
-                                        <th className="py-3 px-4">Actions</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Date</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Topic</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Present</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm hidden sm:table-cell">Absent</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm hidden md:table-cell">Late</th>
+                                        <th className="py-3 px-2 lg:px-4 text-xs lg:text-sm">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {sessions.map(session => (
                                         <React.Fragment key={session.id}>
                                             <tr className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
-                                                <td className="py-3 px-4">
-                                                    <div className="text-sm text-gray-300">
+                                                <td className="py-3 px-2 lg:px-4">
+                                                    <div className="text-xs lg:text-sm text-gray-300">
                                                         {new Date(session.session_date).toLocaleDateString()}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="text-sm text-gray-300">
+                                                <td className="py-3 px-2 lg:px-4">
+                                                    <div className="text-xs lg:text-sm text-gray-300">
                                                         {session.topic || 'No topic'}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="text-sm font-medium text-green-500">
+                                                <td className="py-3 px-2 lg:px-4">
+                                                    <div className="text-xs lg:text-sm font-medium text-green-500">
                                                         {session.attendances?.filter(a => a.status === 'present').length || 0}
                                                     </div>
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="text-sm font-medium text-red-500">
-                                                        {session.attendances?.filter(a => a.status === 'absent').length || 0}
-                                                    </div>
+                                                <td className="py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium text-red-500 hidden sm:table-cell">
+                                                    {session.attendances?.filter(a => a.status === 'absent').length || 0}
                                                 </td>
-                                                <td className="py-3 px-4">
-                                                    <div className="text-sm font-medium text-yellow-500">
-                                                        {session.attendances?.filter(a => a.status === 'late').length || 0}
-                                                    </div>
+                                                <td className="py-3 px-2 lg:px-4 text-xs lg:text-sm font-medium text-yellow-500 hidden md:table-cell">
+                                                    {session.attendances?.filter(a => a.status === 'late').length || 0}
                                                 </td>
-                                                <td className="py-3 px-4">
+                                                <td className="py-3 px-2 lg:px-4">
                                                     <button
                                                         onClick={() => {
                                                             const detailsRow = document.getElementById(`details-${session.id}`);
                                                             detailsRow.classList.toggle('hidden');
                                                         }}
-                                                        className="text-blue-400 hover:text-blue-300 text-sm font-medium"
+                                                        className="text-blue-400 hover:text-blue-300 text-xs lg:text-sm font-medium"
                                                     >
                                                         View Details
                                                     </button>
@@ -353,11 +378,11 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                                 className="hidden border-b border-gray-800 bg-gray-800/50"
                                             >
                                                 <td colSpan="6" className="p-4">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="grid grid-cols-1 gap-4">
                                                         {session.attendances?.map(attendance => (
                                                             <div
                                                                 key={attendance.id}
-                                                                className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg"
+                                                                className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-700/50 rounded-lg space-y-2 sm:space-y-0"
                                                             >
                                                                 <div className="flex items-center space-x-3">
                                                                     <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xs">
@@ -375,7 +400,7 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                                                 <select
                                                                     value={attendance.status}
                                                                     onChange={(e) => updateAttendance(session.id, attendance.id, e.target.value)}
-                                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${attendance.status === 'present'
+                                                                    className={`px-3 py-1 rounded-full text-xs font-medium w-full sm:w-auto ${attendance.status === 'present'
                                                                             ? 'bg-green-600/20 text-green-400'
                                                                             : attendance.status === 'absent'
                                                                                 ? 'bg-red-600/20 text-red-400'
@@ -464,18 +489,18 @@ const Attendance = ({ course = null, sessions = [], students = [], stats = {} })
                                     />
                                 </div>
 
-                                <div className="flex justify-end space-x-3">
+                                <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3">
                                     <button
                                         type="button"
                                         onClick={() => setShowCreateModal(false)}
-                                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                                        className="w-full sm:w-auto px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                                        className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
                                     >
                                         {loading ? 'Creating...' : 'Create Session'}
                                     </button>

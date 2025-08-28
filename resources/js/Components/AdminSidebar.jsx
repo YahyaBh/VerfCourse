@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, usePage, router } from "@inertiajs/react";
 
-const AdminSidebar = ({ activeItem }) => {
+const AdminSidebar = ({ activeItem, isOpen, onClose }) => {
     const { auth } = usePage().props;
     const [courses, setCourses] = useState([]);
     const [showCourseModal, setShowCourseModal] = useState(false);
@@ -28,6 +28,7 @@ const AdminSidebar = ({ activeItem }) => {
 
     const handleCourseSelect = (courseId) => {
         setShowCourseModal(false);
+        if (onClose) onClose(); // Close sidebar on mobile after selection
         router.visit(`/courses/${courseId}/attendance`);
     };
 
@@ -99,7 +100,8 @@ const AdminSidebar = ({ activeItem }) => {
 
     return (
         <>
-            <aside className="bg-gradient-to-b from-gray-800 to-black text-white w-60 min-h-screen flex flex flex-col justify-between py-6">
+            {/* Desktop Sidebar */}
+            <aside className={`hidden lg:flex bg-gradient-to-b from-gray-800 to-black text-white w-60 min-h-screen flex flex-col justify-between py-6 fixed top-0 left-0 bottom-0 z-40 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="px-6">
                     {/* Logo / Brand */}
                     <div className="flex items-center mb-8">
@@ -156,12 +158,81 @@ const AdminSidebar = ({ activeItem }) => {
                 </div>
             </aside>
 
+            {/* Mobile Sidebar */}
+            <aside className={`lg:hidden bg-gradient-to-b from-gray-800 to-black text-white w-64 min-h-screen flex flex-col justify-between py-6 fixed top-0 left-0 bottom-0 z-40 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="px-6">
+                    {/* Logo / Brand */}
+                    <div className="flex items-center mb-8">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold text-xl">
+                            W
+                        </div>
+                        <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                            WEBINA
+                        </span>
+                    </div>
+
+                    {/* Navigation */}
+                    <nav className="flex-1 space-y-1 overflow-y-auto max-h-[calc(100vh-200px)]">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.label}
+                                href={item.isModal ? "#" : item.href}
+                                onClick={(e) => {
+                                    if (item.isModal) {
+                                        e.preventDefault();
+                                        setShowCourseModal(true);
+                                        if (courses.length === 0) {
+                                            fetchCourses();
+                                        }
+                                    } else {
+                                        // Close sidebar when navigating to a new page on mobile
+                                        if (onClose) onClose();
+                                    }
+                                }}
+                                className={`flex items-center justify-between px-4 py-3 rounded-lg ${activeItem === item.label
+                                    ? "bg-gray-800/50 text-white"
+                                    : "text-gray-400 hover:bg-gray-800/30 hover:text-white"
+                                    } transition-colors`}
+                            >
+                                <div className="flex items-center space-x-3">
+                                    <span className="text-yellow-500">{item.icon}</span>
+                                    <span className="font-medium">{item.label}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+
+                {/* User profile section */}
+                <div className="px-6 mt-auto">
+                    <div className="flex items-center space-x-3 p-4 bg-gray-800/30 rounded-xl">
+                        {/* User avatar with gradient background */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 flex items-center justify-center text-white font-bold">
+                            {auth.user.name ? auth.user.name.charAt(0) : 'U'}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            {/* User name and email */}
+                            <div className="text-sm font-bold text-white">{auth.user.name}</div>
+                            <div className="text-xs text-gray-400 truncate">{auth.user.email}</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Overlay for mobile sidebar */}
+            {isOpen && (
+                <div
+                    className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+                    onClick={onClose}
+                ></div>
+            )}
+
             {/* Course Selection Modal */}
             {showCourseModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-gray-800 rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
                         <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-bold text-white">Select a Course</h2>
+                            <h2 className="text-xl lg:text-2xl font-bold text-white">Select a Course</h2>
                             <button
                                 onClick={() => setShowCourseModal(false)}
                                 className="text-gray-400 hover:text-white"

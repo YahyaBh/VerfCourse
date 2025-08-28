@@ -7,6 +7,7 @@ import moment from "moment";
 
 const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStatus }) => {
     const [loading, setLoading] = useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [selectedCourse, setSelectedCourse] = useState(null);
     const [gradesArray, setGradesArray] = useState([]);
@@ -305,15 +306,26 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
         <>
             <Head title={`Student Details - ${student.first_name} ${student.last_name}`} />
             <div className="flex min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
-                <AdminSidebar activeItem="Students" />
-                <main className="flex-1 overflow-y-auto p-6">
+                {/* Mobile menu button */}
+                <button
+                    onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                    className="fixed top-4 left-4 z-50 lg:hidden p-2 rounded-lg bg-gray-800 text-yellow-500"
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+                
+                <AdminSidebar activeItem="Students" isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+                
+                <main className="flex-1 overflow-y-auto p-4 lg:p-6">
                     {/* Top bar */}
-                    <div className="flex justify-between items-center mb-8">
-                        <div>
-                            <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-6 lg:mb-8">
+                        <div className="mt-12 lg:mt-0">
+                            <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 bg-clip-text text-transparent">
                                 Student Details
                             </h1>
-                            <p className="text-gray-400">View and manage student information</p>
+                            <p className="text-gray-400 text-sm lg:text-base">View and manage student information</p>
                         </div>
                         <div className="flex space-x-3">
                             <button
@@ -329,18 +341,18 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                     </div>
 
                     {/* Student Information Card */}
-                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8 border border-gray-700">
+                    <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-xl p-4 lg:p-8 mb-6 lg:mb-8 border border-gray-700">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                             <div className="mb-6 md:mb-0">
                                 <div className="flex items-center space-x-4 mb-4">
-                                    <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-black">
+                                    <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 w-12 h-12 lg:w-16 lg:h-16 rounded-full flex items-center justify-center text-xl lg:text-2xl font-bold text-black">
                                         {student.first_name.charAt(0)}{student.last_name.charAt(0)}
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-bold text-yellow-500">
+                                        <h2 className="text-xl lg:text-2xl font-bold text-yellow-500">
                                             {student.first_name} {student.last_name}
                                         </h2>
-                                        <p className="text-gray-400">{student.email}</p>
+                                        <p className="text-gray-400 text-sm lg:text-base">{student.email}</p>
                                     </div>
                                 </div>
                             </div>
@@ -382,15 +394,15 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                     <div className="space-y-2">
                                         <div className="flex items-center space-x-2">
                                             <span className="text-gray-400 text-sm">Email:</span>
-                                            <span className="text-white">{student.email}</span>
+                                            <span className="text-white text-sm">{student.email}</span>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <span className="text-gray-400 text-sm">Phone:</span>
-                                            <span className="text-white">{student.phone_number || 'Not provided'}</span>
+                                            <span className="text-white text-sm">{student.phone_number || 'Not provided'}</span>
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <span className="text-gray-400 text-sm">Date of Birth:</span>
-                                            <span className="text-white">{student.dob ? moment(student.dob).format('MMMM D, YYYY') : 'Not provided'}</span>
+                                            <span className="text-white text-sm">{student.dob ? moment(student.dob).format('MMMM D, YYYY') : 'Not provided'}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -435,18 +447,18 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                     </div>
 
                     {/* Courses Section */}
-                    <div className="mb-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-yellow-500 flex items-center space-x-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <div className="mb-6 lg:mb-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 mb-6">
+                            <h2 className="text-xl lg:text-2xl font-bold text-yellow-500 flex items-center space-x-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6" viewBox="0 0 20 20" fill="currentColor">
                                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                                 </svg>
                                 <span>Enrolled Courses</span>
                             </h2>
-                            <div className="relative">
+                            <div className="relative w-full sm:w-auto">
                                 <select
                                     onChange={(e) => e.target.value && handleEnrollInCourse(parseInt(e.target.value))}
-                                    className="bg-gray-800 text-gray-200 rounded-lg py-2 pl-10 pr-4 appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700"
+                                    className="w-full bg-gray-800 text-gray-200 rounded-lg py-2 pl-10 pr-4 appearance-none focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm"
                                     defaultValue=""
                                 >
                                     <option value="" disabled>Enroll in Course</option>
@@ -465,14 +477,14 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                         </div>
 
                         {!gradesArray || gradesArray.length === 0 ? (
-                            <div className="bg-gray-800/50 backdrop-blur-sm p-12 rounded-xl text-center border border-gray-700">
+                            <div className="bg-gray-800/50 backdrop-blur-sm p-8 lg:p-12 rounded-xl text-center border border-gray-700">
                                 <div className="flex justify-center mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 lg:h-16 lg:w-16 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                                     </svg>
                                 </div>
-                                <h3 className="text-xl font-medium text-gray-300 mb-2">No Courses Found</h3>
-                                <p className="text-gray-400 mb-4">This student is not enrolled in any courses yet.</p>
+                                <h3 className="text-lg lg:text-xl font-medium text-gray-300 mb-2">No Courses Found</h3>
+                                <p className="text-gray-400 mb-4 text-sm lg:text-base">This student is not enrolled in any courses yet.</p>
                                 <div className="text-gray-500 text-sm mb-4">
                                     <p>Debug: Number of grades: {gradesArray?.length || 0}</p>
                                     <p>Debug: Raw studentGrades type: {typeof studentGrades}</p>
@@ -501,7 +513,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                             });
                                     }}
                                     disabled={loading}
-                                    className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-black py-2 px-4 rounded-lg transition-all duration-300 flex items-center space-x-2 mx-auto"
+                                    className="mt-4 bg-yellow-600 hover:bg-yellow-700 text-black py-2 px-4 rounded-lg transition-all duration-300 flex items-center space-x-2 mx-auto text-sm"
                                 >
                                     {loading ? (
                                         <>
@@ -522,16 +534,16 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                                 {gradesArray.map((courseStudent) => (
                                     <div key={courseStudent.id} className="bg-gray-800/50 backdrop-blur-sm rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-700 overflow-hidden">
-                                        <div className="p-6">
+                                        <div className="p-4 lg:p-6">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
-                                                    <h3 className="text-xl font-bold text-yellow-500 mb-1">
+                                                    <h3 className="text-lg lg:text-xl font-bold text-yellow-500 mb-1">
                                                         {courseStudent.name}
                                                     </h3>
-                                                    <p className="text-sm text-gray-400">Instructor: {courseStudent.instructor || 'Not specified'}</p>
+                                                    <p className="text-xs lg:text-sm text-gray-400">Instructor: {courseStudent.instructor || 'Not specified'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => handleEditCourse(courseStudent.id)}
@@ -546,34 +558,34 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-gray-400 text-sm">Grade:</span>
+                                                    <span className="text-gray-400 text-xs lg:text-sm">Grade:</span>
                                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getGradeColor(courseStudent.pivot?.grade)}`}>
                                                         {courseStudent.pivot?.grade || 'Not graded'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-gray-400 text-sm">Total Score:</span>
-                                                    <span className="text-white font-medium">{courseStudent.pivot?.total_score || 0}%</span>
+                                                    <span className="text-gray-400 text-xs lg:text-sm">Total Score:</span>
+                                                    <span className="text-white font-medium text-sm lg:text-base">{courseStudent.pivot?.total_score || 0}%</span>
                                                 </div>
                                                 
                                                 <div className="pt-2 border-t border-gray-700">
-                                                    <h4 className="text-sm font-medium text-gray-400 mb-2">Score Breakdown:</h4>
+                                                    <h4 className="text-xs lg:text-sm font-medium text-gray-400 mb-2">Score Breakdown:</h4>
                                                     <div className="grid grid-cols-2 gap-2">
                                                         <div className="bg-gray-700/50 rounded-lg p-2">
                                                             <p className="text-xs text-gray-400">Weekly Quizzes</p>
-                                                            <p className="text-white font-medium">{courseStudent.pivot?.weekly_quizzes_score || 0}%</p>
+                                                            <p className="text-white font-medium text-sm">{courseStudent.pivot?.weekly_quizzes_score || 0}%</p>
                                                         </div>
                                                         <div className="bg-gray-700/50 rounded-lg p-2">
                                                             <p className="text-xs text-gray-400">Exercises</p>
-                                                            <p className="text-white font-medium">{courseStudent.pivot?.exercises_score || 0}%</p>
+                                                            <p className="text-white font-medium text-sm">{courseStudent.pivot?.exercises_score || 0}%</p>
                                                         </div>
                                                         <div className="bg-gray-700/50 rounded-lg p-2">
                                                             <p className="text-xs text-gray-400">Final Project</p>
-                                                            <p className="text-white font-medium">{courseStudent.pivot?.final_project_score || 0}%</p>
+                                                            <p className="text-white font-medium text-sm">{courseStudent.pivot?.final_project_score || 0}%</p>
                                                         </div>
                                                         <div className="bg-gray-700/50 rounded-lg p-2">
                                                             <p className="text-xs text-gray-400">Participation</p>
-                                                            <p className="text-white font-medium">{courseStudent.pivot?.participation_score || 0}%</p>
+                                                            <p className="text-white font-medium text-sm">{courseStudent.pivot?.participation_score || 0}%</p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -587,25 +599,25 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
 
                     {/* Edit Course Scores Modal */}
                     {isEditing && selectedCourse && (
-                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                            <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-8 border border-gray-700">
-                                <h3 className="text-2xl font-semibold text-yellow-500 mb-6 flex items-center space-x-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+                            <div className="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 lg:p-8 border border-gray-700">
+                                <h3 className="text-xl lg:text-2xl font-semibold text-yellow-500 mb-6 flex items-center space-x-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 lg:h-6 lg:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                     <span>Edit Course Scores</span>
                                 </h3>
                                 <form onSubmit={handleUpdateScores}>
                                     <div className="mb-4">
-                                        <label className="block text-gray-400 mb-2">Course</label>
+                                        <label className="block text-gray-400 mb-2 text-sm">Course</label>
                                         <div className="bg-gray-700 p-3 rounded-lg">
-                                            <p className="font-medium">{gradesArray.find(g => g.id === selectedCourse)?.name}</p>
+                                            <p className="font-medium text-sm">{gradesArray.find(g => g.id === selectedCourse)?.name}</p>
                                         </div>
                                     </div>
 
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="block text-gray-400 mb-2">Weekly Quizzes Score (max: 25)</label>
+                                            <label className="block text-gray-400 mb-2 text-sm">Weekly Quizzes Score (max: 25)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
@@ -613,7 +625,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                                     max="25"
                                                     value={courseScores.weekly_quizzes_score}
                                                     onChange={(e) => handleScoreChange('weekly_quizzes_score', e.target.value)}
-                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200 text-sm"
                                                 />
                                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                                                     /25
@@ -622,7 +634,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                         </div>
 
                                         <div>
-                                            <label className="block text-gray-400 mb-2">Exercises Score (max: 25)</label>
+                                            <label className="block text-gray-400 mb-2 text-sm">Exercises Score (max: 25)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
@@ -630,7 +642,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                                     max="25"
                                                     value={courseScores.exercises_score}
                                                     onChange={(e) => handleScoreChange('exercises_score', e.target.value)}
-                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200 text-sm"
                                                 />
                                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                                                     /25
@@ -639,7 +651,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                         </div>
 
                                         <div>
-                                            <label className="block text-gray-400 mb-2">Final Project Score (max: 25)</label>
+                                            <label className="block text-gray-400 mb-2 text-sm">Final Project Score (max: 25)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
@@ -647,7 +659,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                                     max="25"
                                                     value={courseScores.final_project_score}
                                                     onChange={(e) => handleScoreChange('final_project_score', e.target.value)}
-                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200 text-sm"
                                                 />
                                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                                                     /25
@@ -656,7 +668,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                         </div>
 
                                         <div>
-                                            <label className="block text-gray-400 mb-2">Participation Score (max: 25)</label>
+                                            <label className="block text-gray-400 mb-2 text-sm">Participation Score (max: 25)</label>
                                             <div className="relative">
                                                 <input
                                                     type="number"
@@ -664,7 +676,7 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                                     max="25"
                                                     value={courseScores.participation_score}
                                                     onChange={(e) => handleScoreChange('participation_score', e.target.value)}
-                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200"
+                                                    className="w-full p-3 bg-gray-700 rounded-lg text-gray-200 text-sm"
                                                 />
                                                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
                                                     /25
@@ -674,29 +686,29 @@ const StudentDetails = ({ student, courses = [], studentGrades = [], paymentStat
                                     </div>
 
                                     <div className="mb-6 mt-8">
-                                        <label className="block text-gray-400 mb-2">Total Score & Grade</label>
+                                        <label className="block text-gray-400 mb-2 text-sm">Total Score & Grade</label>
                                         <div className="flex items-center space-x-3">
                                             <div className="flex-1 bg-gradient-to-r from-yellow-600/20 to-yellow-700/20 p-3 rounded-lg border border-yellow-600/30">
-                                                <span className="text-xl font-bold text-yellow-500">{courseScores.total_score}%</span>
+                                                <span className="text-lg lg:text-xl font-bold text-yellow-500">{courseScores.total_score}%</span>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-full text-white font-medium ${getGradeColor(courseScores.grade)}`}>
+                                            <span className={`px-3 py-1 rounded-full text-white font-medium text-sm ${getGradeColor(courseScores.grade)}`}>
                                                 {courseScores.grade}
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex justify-between">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between space-y-3 sm:space-y-0">
                                         <button
                                             type="button"
                                             onClick={() => setIsEditing(false)}
-                                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-all duration-300"
+                                            className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-all duration-300 w-full sm:w-auto"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             type="submit"
                                             disabled={loading}
-                                            className="bg-yellow-600 hover:bg-yellow-700 text-black py-2 px-4 rounded-lg transition-all duration-300 flex items-center space-x-2 disabled:opacity-50"
+                                            className="bg-yellow-600 hover:bg-yellow-700 text-black py-2 px-4 rounded-lg transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 w-full sm:w-auto"
                                         >
                                             {loading ? (
                                                 <>
